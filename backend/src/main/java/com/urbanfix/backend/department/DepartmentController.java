@@ -23,3 +23,4 @@ public class DepartmentController {
         return ResponseEntity.ok(departmentService.getDepartmentByCode(code));
     }
 }
+

@@ -91,3 +91,4 @@ public class DepartmentResponse {
         this.resolvedTicketsCount = resolvedTicketsCount;
     }
 }
+

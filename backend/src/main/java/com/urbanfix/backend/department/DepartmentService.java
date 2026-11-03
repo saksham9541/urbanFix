@@ -75,3 +75,4 @@ public class DepartmentService {
                 .orElseGet(() -> departmentRepository.findAll().stream().findFirst().orElse(null));
     }
 }
+

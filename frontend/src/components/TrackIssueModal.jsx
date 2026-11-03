@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Search, CheckCircle2, Clock, AlertTriangle, MapPin, Shield, Calendar, ArrowRight } from 'lucide-react';
+import { X, Search, CheckCircle2, Clock, AlertTriangle, MapPin, Shield, Calendar, ArrowRight, Sparkles } from 'lucide-react';
 import { trackComplaint } from '../services/api';
 
 const STATUS_STEPS = [
@@ -181,6 +181,23 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
                     <span>Reported: {new Date(complaint.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
+
+                {complaint.aiConfidence && complaint.aiConfidence >= 0.75 && (
+                  <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs space-y-1">
+                    <div className="font-bold text-indigo-900 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-indigo-600" />
+                        AI Vision Verification:
+                      </span>
+                      <span className="text-[10px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-indigo-200 text-indigo-800">
+                        {Math.round(complaint.aiConfidence * 100)}% Confidence
+                      </span>
+                    </div>
+                    <p className="text-indigo-800 text-[11px]">
+                      Automated neural hazard classification: <strong className="font-semibold">{complaint.aiPredictedCategory || complaint.category}</strong>
+                    </p>
+                  </div>
+                )}
 
                 {complaint.imageUrl && (
                   <div>

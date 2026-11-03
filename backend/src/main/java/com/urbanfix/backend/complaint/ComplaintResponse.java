@@ -29,6 +29,9 @@ public class ComplaintResponse {
     private Instant resolvedAt;
     private String resolutionNotes;
     private String resolutionImageUrl;
+    private String aiPredictedCategory;
+    private Double aiConfidence;
+    private Boolean aiVerified;
 
     public ComplaintResponse() {
     }
@@ -83,6 +86,9 @@ public class ComplaintResponse {
         dto.setResolvedAt(complaint.getResolvedAt());
         dto.setResolutionNotes(complaint.getResolutionNotes());
         dto.setResolutionImageUrl(complaint.getResolutionImageUrl());
+        dto.setAiPredictedCategory(complaint.getAiPredictedCategory());
+        dto.setAiConfidence(complaint.getAiConfidence());
+        dto.setAiVerified(complaint.getAiConfidence() != null && complaint.getAiConfidence() >= 0.75);
         return dto;
     }
 
@@ -284,6 +290,30 @@ public class ComplaintResponse {
 
     public void setResolutionImageUrl(String resolutionImageUrl) {
         this.resolutionImageUrl = resolutionImageUrl;
+    }
+
+    public String getAiPredictedCategory() {
+        return aiPredictedCategory;
+    }
+
+    public void setAiPredictedCategory(String aiPredictedCategory) {
+        this.aiPredictedCategory = aiPredictedCategory;
+    }
+
+    public Double getAiConfidence() {
+        return aiConfidence;
+    }
+
+    public void setAiConfidence(Double aiConfidence) {
+        this.aiConfidence = aiConfidence;
+    }
+
+    public Boolean getAiVerified() {
+        return aiVerified;
+    }
+
+    public void setAiVerified(Boolean aiVerified) {
+        this.aiVerified = aiVerified;
     }
 }
 

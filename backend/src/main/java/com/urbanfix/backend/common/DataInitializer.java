@@ -135,6 +135,8 @@ public class DataInitializer implements CommandLineRunner {
             c1.setAssignedOfficer(demoOfficer);
             c1.setDepartment(roadsDept);
             c1.setSlaDeadline(Instant.now().plus(12, java.time.temporal.ChronoUnit.HOURS));
+            c1.setAiConfidence(0.96);
+            c1.setAiPredictedCategory("ROADS_INFRASTRUCTURE");
             complaintRepository.save(c1);
 
             com.urbanfix.backend.complaint.Complaint c2 = new com.urbanfix.backend.complaint.Complaint(
@@ -152,6 +154,8 @@ public class DataInitializer implements CommandLineRunner {
             c2.setStatus("SUBMITTED");
             c2.setDepartment(sanitationDept);
             c2.setSlaDeadline(Instant.now().plus(12, java.time.temporal.ChronoUnit.HOURS));
+            c2.setAiConfidence(0.92);
+            c2.setAiPredictedCategory("GARBAGE_SANITATION");
             complaintRepository.save(c2);
 
             com.urbanfix.backend.complaint.Complaint c3 = new com.urbanfix.backend.complaint.Complaint(
@@ -173,6 +177,8 @@ public class DataInitializer implements CommandLineRunner {
             c3.setResolvedAt(Instant.now());
             c3.setIsSlaBreached(false);
             c3.setResolutionNotes("LED bulb unit and junction fuse replaced by field crew.");
+            c3.setAiConfidence(0.89);
+            c3.setAiPredictedCategory("STREETLIGHT_ELECTRICITY");
             complaintRepository.save(c3);
 
             log.info("Seeded 3 demo civic complaints with departments and SLA deadlines.");

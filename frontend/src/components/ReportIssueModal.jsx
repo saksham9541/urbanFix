@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Camera, MapPin, AlertTriangle, CheckCircle2, Upload, Navigation, ArrowRight, Copy } from 'lucide-react';
-import { createComplaint, uploadImageApi } from '../services/api';
+import { X, Camera, MapPin, AlertTriangle, CheckCircle2, Upload, Navigation, ArrowRight, Copy, Sparkles, Cpu, Check } from 'lucide-react';
+import { createComplaint, uploadImageApi, analyzeIssueWithAi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function ReportIssueModal({ isOpen, onClose, onComplaintCreated, onOpenAuth }) {
@@ -24,8 +24,39 @@ export default function ReportIssueModal({ isOpen, onClose, onComplaintCreated, 
   const [error, setError] = useState('');
   const [createdComplaint, setCreatedComplaint] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [aiScanning, setAiScanning] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+  const [aiApplied, setAiApplied] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleRunAiScan = async (imgUrl) => {
+    setAiScanning(true);
+    setAiApplied(false);
+    try {
+      const res = await analyzeIssueWithAi({
+        imageUrl: imgUrl || formData.imageUrl || imageFile?.name,
+        title: formData.title,
+        description: formData.description,
+        categoryHint: formData.category,
+      });
+      setAiResult(res);
+    } catch (err) {
+      console.warn('AI analysis request failed', err);
+    } finally {
+      setAiScanning(false);
+    }
+  };
+
+  const handleApplyAiSuggestions = () => {
+    if (!aiResult) return;
+    setFormData((prev) => ({
+      ...prev,
+      category: aiResult.detectedCategory || prev.category,
+      severity: aiResult.suggestedSeverity || prev.severity,
+    }));
+    setAiApplied(true);
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -35,14 +66,19 @@ export default function ReportIssueModal({ isOpen, onClose, onComplaintCreated, 
 
     // Upload immediately
     setUploading(true);
+    let uploadedUrl = null;
     try {
       const res = await uploadImageApi(file);
+      uploadedUrl = res.url;
       setFormData((prev) => ({ ...prev, imageUrl: res.url }));
     } catch (err) {
       console.warn('Image upload failed, fallback to local URL', err);
     } finally {
       setUploading(false);
     }
+
+    // Trigger AI Vision Scan
+    handleRunAiScan(uploadedUrl || file.name);
   };
 
   const handleDetectLocation = () => {
@@ -287,6 +323,93 @@ export default function ReportIssueModal({ isOpen, onClose, onComplaintCreated, 
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* AI Vision Hazard Analyzer Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950/5 via-slate-50 to-indigo-50/20 border border-indigo-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 border border-indigo-200">
+                      <Cpu className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800">AI Vision Hazard Inspection</h4>
+                      <p className="text-[10px] text-slate-500">FastAPI neural vision analysis & automated classification</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={aiScanning}
+                    onClick={() => handleRunAiScan()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${aiScanning ? 'animate-spin' : ''}`} />
+                    {aiScanning ? 'Scanning...' : 'Scan with AI'}
+                  </button>
+                </div>
+
+                {aiScanning && (
+                  <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl text-center space-y-1 animate-pulse">
+                    <div className="text-xs font-semibold text-indigo-700 flex items-center justify-center gap-1.5">
+                      <Sparkles className="w-4 h-4 animate-spin text-indigo-600" />
+                      Neural Vision Engine Analyzing Evidence...
+                    </div>
+                    <div className="text-[10px] text-indigo-500">
+                      Computing surface anomaly coordinates & severity prediction
+                    </div>
+                  </div>
+                )}
+
+                {aiResult && !aiScanning && (
+                  <div className="p-3.5 bg-white border border-indigo-200 rounded-xl space-y-2.5 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            🤖 {Math.round((aiResult.confidence || 0.9) * 100)}% Confidence
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                            Severity: {aiResult.suggestedSeverity}
+                          </span>
+                        </div>
+                        <h5 className="font-bold text-slate-900 text-xs mt-1.5">
+                          {aiResult.categoryName}
+                        </h5>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyAiSuggestions}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                          aiApplied
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                        }`}
+                      >
+                        {aiApplied ? <Check className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+                        {aiApplied ? 'Applied' : 'Apply AI'}
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      {aiResult.explanation}
+                    </p>
+
+                    {aiResult.detectedLabels && aiResult.detectedLabels.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {aiResult.detectedLabels.map((lbl, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-medium border border-slate-200"
+                          >
+                            #{lbl.label} ({Math.round(lbl.confidence * 100)}%)
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Geolocation Section */}

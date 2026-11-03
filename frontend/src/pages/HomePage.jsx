@@ -66,13 +66,13 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
         <div className="max-w-3xl space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-300 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-            Phase 3: Municipal Department Routing & SLA Engine
+            Phase 4: AI Computer Vision & Hazard Detection Engine
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
             Fix your city's problems with{' '}
             <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
-              GPS Tagging, Auto-Routing & SLAs
+              AI Vision Hazard Detection & SLAs
             </span>
           </h1>
 
@@ -248,8 +248,14 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
                 </div>
 
                 {issue.imageUrl && (
-                  <div className="h-36 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-100">
+                  <div className="h-36 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative">
                     <img src={issue.imageUrl} alt="" className="w-full h-full object-cover" />
+                    {issue.aiConfidence && issue.aiConfidence >= 0.75 && (
+                      <div className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-indigo-400/40 text-indigo-300 text-[10px] font-bold shadow-sm">
+                        <Sparkles className="w-3 h-3 text-indigo-400" />
+                        AI Verified ({Math.round(issue.aiConfidence * 100)}%)
+                      </div>
+                    )}
                   </div>
                 )}
 

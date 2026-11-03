@@ -21,9 +21,28 @@ class DetectionItem(BaseModel):
     box: Optional[BoundingBox] = None
 
 
-class InferenceRequest(BaseModel):
+class AiAnalysisRequest(BaseModel):
     image_url: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
     category_hint: Optional[str] = None
+
+
+class AiAnalysisResponse(BaseModel):
+    detected_category: str
+    category_name: str
+    confidence: float
+    suggested_severity: str
+    detected_labels: List[DetectionItem] = []
+    explanation: str
+    urgency_score: int
+    ai_verified: bool
+    processing_time_ms: float = 45.0
+
+
+# Backward compatibility
+class InferenceRequest(AiAnalysisRequest):
+    pass
 
 
 class InferenceResponse(BaseModel):
@@ -31,4 +50,3 @@ class InferenceResponse(BaseModel):
     confidence: float
     detected_items: List[DetectionItem] = []
     severity: str = "MEDIUM"
-

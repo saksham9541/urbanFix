@@ -13,3 +13,4 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     List<Department> findByIsActiveTrue();
     boolean existsByCode(String code);
 }
+

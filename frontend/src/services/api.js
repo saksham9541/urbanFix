@@ -146,3 +146,23 @@ export const assignComplaint = async (complaintId, officerId, departmentId) => {
   const response = await apiClient.post(`/complaints/${complaintId}/assign`, null, { params });
   return response.data;
 };
+
+// AI Vision Services (Phase 4)
+export const analyzeIssueWithAi = async ({ imageUrl, title, description, categoryHint }) => {
+  const response = await apiClient.post('/ai/analyze', {
+    image_url: imageUrl,
+    title,
+    description,
+    category_hint: categoryHint,
+  });
+  return response.data;
+};
+
+export const checkAiServiceHealth = async () => {
+  try {
+    const response = await apiClient.get('/ai/health');
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};

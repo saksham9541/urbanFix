@@ -106,7 +106,21 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {complaint.departmentName && (
+                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                      {complaint.departmentName}
+                    </span>
+                  )}
+                  {complaint.slaRemainingMinutes !== null && complaint.slaRemainingMinutes !== undefined && complaint.status !== 'RESOLVED' && (
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                      complaint.isSlaBreached
+                        ? 'bg-rose-100 text-rose-700 border-rose-200'
+                        : 'bg-amber-100 text-amber-800 border-amber-200'
+                    }`}>
+                      {complaint.isSlaBreached ? '🚨 SLA Overdue' : `⏳ ${Math.floor(complaint.slaRemainingMinutes / 60)}h left`}
+                    </span>
+                  )}
                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                     complaint.status === 'RESOLVED'
                       ? 'bg-emerald-100 text-emerald-800'
@@ -208,3 +222,4 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
     </div>
   );
 }
+

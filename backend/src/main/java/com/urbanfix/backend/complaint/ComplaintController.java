@@ -51,6 +51,28 @@ public class ComplaintController {
         return ResponseEntity.ok(complaints);
     }
 
+    @GetMapping("/officer/tickets")
+    @PreAuthorize("hasAnyRole('OFFICER', 'ADMIN')")
+    public ResponseEntity<List<ComplaintResponse>> getOfficerTickets(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<ComplaintResponse> complaints = complaintService.getTicketsForOfficer(userDetails.getId());
+        return ResponseEntity.ok(complaints);
+    }
+
+    @PostMapping("/{id}/assign")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OFFICER')")
+    public ResponseEntity<ComplaintResponse> assignComplaint(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long officerId,
+            @RequestParam(required = false) Long departmentId) {
+        ComplaintResponse assigned = complaintService.assignComplaint(id, officerId, departmentId);
+        return ResponseEntity.ok(assigned);
+    }
+
     @GetMapping("/track/{trackingNumber}")
     public ResponseEntity<ComplaintResponse> trackComplaint(@PathVariable String trackingNumber) {
         ComplaintResponse complaint = complaintService.getByTrackingNumber(trackingNumber);
@@ -81,3 +103,4 @@ public class ComplaintController {
         return ResponseEntity.ok(updated);
     }
 }
+

@@ -9,3 +9,4 @@ public enum ComplaintCategory {
     PUBLIC_HEALTH,
     OTHER
 }
+

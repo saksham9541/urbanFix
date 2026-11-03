@@ -49,12 +49,19 @@ public class Complaint {
     @JoinColumn(name = "citizen_id")
     private User citizen;
 
-    @Column(name = "department_id")
-    private Long departmentId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "department_id")
+    private com.urbanfix.backend.department.Department department;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assigned_officer_id")
     private User assignedOfficer;
+
+    @Column(name = "sla_deadline")
+    private Instant slaDeadline;
+
+    @Column(name = "is_sla_breached")
+    private Boolean isSlaBreached = false;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
@@ -204,12 +211,28 @@ public class Complaint {
         this.citizen = citizen;
     }
 
-    public Long getDepartmentId() {
-        return departmentId;
+    public com.urbanfix.backend.department.Department getDepartment() {
+        return department;
     }
 
-    public void setDepartmentId(Long departmentId) {
-        this.departmentId = departmentId;
+    public void setDepartment(com.urbanfix.backend.department.Department department) {
+        this.department = department;
+    }
+
+    public Instant getSlaDeadline() {
+        return slaDeadline;
+    }
+
+    public void setSlaDeadline(Instant slaDeadline) {
+        this.slaDeadline = slaDeadline;
+    }
+
+    public Boolean getIsSlaBreached() {
+        return isSlaBreached;
+    }
+
+    public void setIsSlaBreached(Boolean slaBreached) {
+        isSlaBreached = slaBreached;
     }
 
     public User getAssignedOfficer() {
@@ -260,3 +283,4 @@ public class Complaint {
         this.resolutionImageUrl = resolutionImageUrl;
     }
 }
+

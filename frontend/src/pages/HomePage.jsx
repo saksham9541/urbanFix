@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import MapView from '../components/MapView';
 import RoleDashboard from '../components/RoleDashboard';
+import DepartmentsSection from '../components/DepartmentsSection';
 import { useAuth } from '../context/AuthContext';
 import { getAllComplaints, updateComplaintStatus } from '../services/api';
 
@@ -65,13 +66,13 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
         <div className="max-w-3xl space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-300 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-            Phase 2: Civic Issue Reporting & Resolution Engine
+            Phase 3: Municipal Department Routing & SLA Engine
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
             Fix your city's problems with{' '}
             <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
-              GPS Tagging & Live Tracking
+              GPS Tagging, Auto-Routing & SLAs
             </span>
           </h1>
 
@@ -198,6 +199,9 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
         <MapView onTrackComplaint={onOpenTrack} refreshTrigger={complaints.length} />
       </section>
 
+      {/* Departments & SLA Engine Overview */}
+      <DepartmentsSection />
+
       {/* Live Civic Issues Feed */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
@@ -225,15 +229,22 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
                   <span className="font-mono text-xs font-extrabold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200">
                     {issue.trackingNumber}
                   </span>
-                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                    issue.status === 'RESOLVED'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : issue.status === 'IN_PROGRESS'
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}>
-                    {issue.status}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {issue.departmentCode && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        {issue.departmentCode}
+                      </span>
+                    )}
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                      issue.status === 'RESOLVED'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : issue.status === 'IN_PROGRESS'
+                        ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      {issue.status}
+                    </span>
+                  </div>
                 </div>
 
                 {issue.imageUrl && (
@@ -247,9 +258,18 @@ export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth, o
                   <p className="text-xs text-slate-500 line-clamp-2 mt-1">{issue.description}</p>
                 </div>
 
-                <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                  <span className="truncate">{issue.address}</span>
+                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                  <div className="flex items-center gap-1 truncate max-w-[60%]">
+                    <MapPin className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                    <span className="truncate">{issue.address}</span>
+                  </div>
+
+                  {issue.slaRemainingMinutes !== null && issue.slaRemainingMinutes !== undefined && issue.status !== 'RESOLVED' && (
+                    <div className="flex items-center gap-1 font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-[10px]">
+                      <Clock className="w-3 h-3 text-amber-600" />
+                      {issue.isSlaBreached ? 'Overdue' : `${Math.floor(issue.slaRemainingMinutes / 60)}h left`}
+                    </div>
+                  )}
                 </div>
               </div>
 

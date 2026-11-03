@@ -117,3 +117,32 @@ export const uploadImageApi = async (file) => {
   });
   return response.data;
 };
+
+// Department & SLA Services (Phase 3)
+export const getAllDepartments = async () => {
+  const response = await apiClient.get('/departments');
+  return response.data;
+};
+
+export const getDepartmentByCode = async (code) => {
+  const response = await apiClient.get(`/departments/${encodeURIComponent(code)}`);
+  return response.data;
+};
+
+export const getSlaAnalytics = async () => {
+  const response = await apiClient.get('/analytics/sla-summary');
+  return response.data;
+};
+
+export const getOfficerTickets = async () => {
+  const response = await apiClient.get('/complaints/officer/tickets');
+  return response.data;
+};
+
+export const assignComplaint = async (complaintId, officerId, departmentId) => {
+  const params = {};
+  if (officerId) params.officerId = officerId;
+  if (departmentId) params.departmentId = departmentId;
+  const response = await apiClient.post(`/complaints/${complaintId}/assign`, null, { params });
+  return response.data;
+};

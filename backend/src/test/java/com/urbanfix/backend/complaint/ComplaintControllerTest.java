@@ -102,4 +102,59 @@ class ComplaintControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
+
+    @Test
+    void testDepartmentRoutingAndOfficerAssignment() throws Exception {
+        String citizenToken = loginAndGetToken("citizen", "Citizen@123");
+
+        CreateComplaintRequest request = new CreateComplaintRequest(
+                "Burst Water Pipe Main Road",
+                "Clean water pipe leaking onto roadway causing puddling.",
+                "WATER_DRAINAGE",
+                "HIGH",
+                28.6250,
+                77.2180,
+                "Junction 9 Water Line",
+                null
+        );
+
+        MvcResult createResult = mockMvc.perform(post("/api/complaints")
+                        .header("Authorization", "Bearer " + citizenToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.departmentCode").value("WATER"))
+                .andExpect(jsonPath("$.slaDeadline").isNotEmpty())
+                .andReturn();
+
+        String responseBody = createResult.getResponse().getContentAsString();
+        Map<?, ?> responseMap = objectMapper.readValue(responseBody, Map.class);
+        Number complaintId = (Number) responseMap.get("id");
+
+        // Admin assigns to officer
+        String adminToken = loginAndGetToken("admin", "Admin@123");
+        mockMvc.perform(post("/api/complaints/" + complaintId + "/assign?officerId=2")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ASSIGNED"));
+
+        // Officer views assigned tickets
+        String officerToken = loginAndGetToken("officer", "Officer@123");
+        mockMvc.perform(get("/api/complaints/officer/tickets")
+                        .header("Authorization", "Bearer " + officerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        // Test Public Departments API
+        mockMvc.perform(get("/api/departments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].code").isNotEmpty());
+
+        // Test Public SLA Summary Analytics API
+        mockMvc.perform(get("/api/analytics/sla-summary"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalTickets").isNumber())
+                .andExpect(jsonPath("$.slaCompliancePercentage").isNumber());
+    }
 }
+

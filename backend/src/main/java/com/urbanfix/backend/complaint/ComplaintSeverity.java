@@ -6,3 +6,4 @@ public enum ComplaintSeverity {
     HIGH,
     CRITICAL
 }
+

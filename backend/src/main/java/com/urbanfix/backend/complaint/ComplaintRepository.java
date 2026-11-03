@@ -17,3 +17,4 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     List<Complaint> findByCategoryOrderByCreatedAtDesc(String category);
     long countByStatus(String status);
 }
+

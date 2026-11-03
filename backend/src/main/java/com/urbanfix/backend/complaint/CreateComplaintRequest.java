@@ -100,3 +100,4 @@ public class CreateComplaintRequest {
         this.imageUrl = imageUrl;
     }
 }
+

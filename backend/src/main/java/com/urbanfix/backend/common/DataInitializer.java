@@ -27,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
     private UserRepository userRepository;
 
     @Autowired
+    private com.urbanfix.backend.department.DepartmentRepository departmentRepository;
+
+    @Autowired
     private com.urbanfix.backend.complaint.ComplaintRepository complaintRepository;
 
     @Autowired
@@ -43,6 +46,36 @@ public class DataInitializer implements CommandLineRunner {
 
         Role adminRole = roleRepository.findByName(RoleName.ROLE_ADMIN.name())
                 .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_ADMIN.name(), "System administrator with full access")));
+
+        // 2. Seed Municipal Departments
+        if (departmentRepository.count() == 0) {
+            departmentRepository.save(new com.urbanfix.backend.department.Department(
+                    "Public Works & Roads", "ROADS",
+                    "Road maintenance, pothole repairs, bridges, footpaths and pedestrian crossings",
+                    "roads@urbanfix.gov", 24));
+
+            departmentRepository.save(new com.urbanfix.backend.department.Department(
+                    "Public Health & Sanitation", "SANITATION",
+                    "Municipal solid waste management, dumpster clearing, street sweeping, and hygiene",
+                    "sanitation@urbanfix.gov", 12));
+
+            departmentRepository.save(new com.urbanfix.backend.department.Department(
+                    "Power & Streetlights", "ELECTRICITY",
+                    "Public lighting fixtures, dark spots, electrical poles, and wiring faults",
+                    "power@urbanfix.gov", 24));
+
+            departmentRepository.save(new com.urbanfix.backend.department.Department(
+                    "Water Supply & Drainage", "WATER",
+                    "Pipeline leakages, sewage overflow, contaminated water, stormwater drains",
+                    "water@urbanfix.gov", 18));
+
+            departmentRepository.save(new com.urbanfix.backend.department.Department(
+                    "Horticulture & Urban Forestry", "PARKS",
+                    "Public parks, overgrown trees, fallen branches, playground equipment",
+                    "parks@urbanfix.gov", 48));
+
+            log.info("Seeded 5 core municipal departments with SLA thresholds.");
+        }
 
         // 2. Seed Citizen Demo User
         if (!userRepository.existsByUsername("citizen")) {
@@ -82,6 +115,10 @@ public class DataInitializer implements CommandLineRunner {
             User demoCitizen = userRepository.findByUsername("citizen").orElse(null);
             User demoOfficer = userRepository.findByUsername("officer").orElse(null);
 
+            com.urbanfix.backend.department.Department roadsDept = departmentRepository.findByCode("ROADS").orElse(null);
+            com.urbanfix.backend.department.Department sanitationDept = departmentRepository.findByCode("SANITATION").orElse(null);
+            com.urbanfix.backend.department.Department electricDept = departmentRepository.findByCode("ELECTRICITY").orElse(null);
+
             com.urbanfix.backend.complaint.Complaint c1 = new com.urbanfix.backend.complaint.Complaint(
                     "UF-2026-10001",
                     "Deep Pothole on Outer Ring Road",
@@ -96,6 +133,8 @@ public class DataInitializer implements CommandLineRunner {
             );
             c1.setStatus("IN_PROGRESS");
             c1.setAssignedOfficer(demoOfficer);
+            c1.setDepartment(roadsDept);
+            c1.setSlaDeadline(Instant.now().plus(12, java.time.temporal.ChronoUnit.HOURS));
             complaintRepository.save(c1);
 
             com.urbanfix.backend.complaint.Complaint c2 = new com.urbanfix.backend.complaint.Complaint(
@@ -111,6 +150,8 @@ public class DataInitializer implements CommandLineRunner {
                     demoCitizen
             );
             c2.setStatus("SUBMITTED");
+            c2.setDepartment(sanitationDept);
+            c2.setSlaDeadline(Instant.now().plus(12, java.time.temporal.ChronoUnit.HOURS));
             complaintRepository.save(c2);
 
             com.urbanfix.backend.complaint.Complaint c3 = new com.urbanfix.backend.complaint.Complaint(
@@ -127,11 +168,14 @@ public class DataInitializer implements CommandLineRunner {
             );
             c3.setStatus("RESOLVED");
             c3.setAssignedOfficer(demoOfficer);
+            c3.setDepartment(electricDept);
+            c3.setSlaDeadline(Instant.now().plus(24, java.time.temporal.ChronoUnit.HOURS));
             c3.setResolvedAt(Instant.now());
+            c3.setIsSlaBreached(false);
             c3.setResolutionNotes("LED bulb unit and junction fuse replaced by field crew.");
             complaintRepository.save(c3);
 
-            log.info("Seeded 3 demo civic complaints for map and feed visualization.");
+            log.info("Seeded 3 demo civic complaints with departments and SLA deadlines.");
         }
     }
 }

@@ -19,6 +19,11 @@ public class ComplaintResponse {
     private String citizenName;
     private String assignedOfficerUsername;
     private Long departmentId;
+    private String departmentName;
+    private String departmentCode;
+    private Instant slaDeadline;
+    private Boolean isSlaBreached;
+    private Long slaRemainingMinutes;
     private Instant createdAt;
     private Instant updatedAt;
     private Instant resolvedAt;
@@ -53,7 +58,26 @@ public class ComplaintResponse {
             dto.setAssignedOfficerUsername(complaint.getAssignedOfficer().getUsername());
         }
 
-        dto.setDepartmentId(complaint.getDepartmentId());
+        if (complaint.getDepartment() != null) {
+            dto.setDepartmentId(complaint.getDepartment().getId());
+            dto.setDepartmentName(complaint.getDepartment().getName());
+            dto.setDepartmentCode(complaint.getDepartment().getCode());
+        }
+
+        dto.setSlaDeadline(complaint.getSlaDeadline());
+        boolean breached = Boolean.TRUE.equals(complaint.getIsSlaBreached());
+        if (!breached && complaint.getSlaDeadline() != null && !"RESOLVED".equalsIgnoreCase(complaint.getStatus()) && !"CLOSED".equalsIgnoreCase(complaint.getStatus())) {
+            breached = Instant.now().isAfter(complaint.getSlaDeadline());
+        }
+        dto.setIsSlaBreached(breached);
+
+        if (complaint.getSlaDeadline() != null) {
+            long remaining = java.time.Duration.between(Instant.now(), complaint.getSlaDeadline()).toMinutes();
+            dto.setSlaRemainingMinutes(remaining);
+        } else {
+            dto.setSlaRemainingMinutes(0L);
+        }
+
         dto.setCreatedAt(complaint.getCreatedAt());
         dto.setUpdatedAt(complaint.getUpdatedAt());
         dto.setResolvedAt(complaint.getResolvedAt());
@@ -182,6 +206,46 @@ public class ComplaintResponse {
         this.departmentId = departmentId;
     }
 
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
+    }
+
+    public Instant getSlaDeadline() {
+        return slaDeadline;
+    }
+
+    public void setSlaDeadline(Instant slaDeadline) {
+        this.slaDeadline = slaDeadline;
+    }
+
+    public Boolean getIsSlaBreached() {
+        return isSlaBreached;
+    }
+
+    public void setIsSlaBreached(Boolean isSlaBreached) {
+        this.isSlaBreached = isSlaBreached;
+    }
+
+    public Long getSlaRemainingMinutes() {
+        return slaRemainingMinutes;
+    }
+
+    public void setSlaRemainingMinutes(Long slaRemainingMinutes) {
+        this.slaRemainingMinutes = slaRemainingMinutes;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -222,3 +286,4 @@ public class ComplaintResponse {
         this.resolutionImageUrl = resolutionImageUrl;
     }
 }
+

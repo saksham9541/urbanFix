@@ -43,3 +43,4 @@ public class UpdateStatusRequest {
         this.resolutionImageUrl = resolutionImageUrl;
     }
 }
+

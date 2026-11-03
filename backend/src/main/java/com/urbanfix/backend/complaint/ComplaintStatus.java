@@ -8,3 +8,4 @@ public enum ComplaintStatus {
     REJECTED,
     CLOSED
 }
+

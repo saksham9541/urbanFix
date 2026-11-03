@@ -30,6 +30,9 @@ public class ComplaintService {
     private com.urbanfix.backend.ai.AiVisionService aiVisionService;
 
     @Autowired
+    private com.urbanfix.backend.notification.NotificationService notificationService;
+
+    @Autowired
     private UserRepository userRepository;
 
     private static final Random RANDOM = new Random();
@@ -106,6 +109,19 @@ public class ComplaintService {
         complaint.setUpdatedAt(Instant.now());
 
         Complaint saved = complaintRepository.save(complaint);
+
+        // Notify citizen of successful ticket logging
+        if (citizen != null) {
+            String deptName = dept != null ? dept.getName() : "Municipal Operations";
+            notificationService.createNotification(
+                    citizen,
+                    saved,
+                    "Issue Reported: " + saved.getTrackingNumber(),
+                    "Your report '" + saved.getTitle() + "' has been logged and assigned to " + deptName + " under SLA tracking.",
+                    "SUBMITTED"
+            );
+        }
+
         return ComplaintResponse.fromEntity(saved);
     }
 
@@ -154,6 +170,24 @@ public class ComplaintService {
                     .orElseThrow(() -> new RuntimeException("Officer not found with id: " + officerId));
             complaint.setAssignedOfficer(officer);
             complaint.setStatus(ComplaintStatus.ASSIGNED.name());
+
+            notificationService.createNotification(
+                    officer,
+                    complaint,
+                    "New Incident Assigned: " + complaint.getTrackingNumber(),
+                    "You have been assigned to investigate and resolve '" + complaint.getTitle() + "'.",
+                    "ASSIGNED"
+            );
+
+            if (complaint.getCitizen() != null) {
+                notificationService.createNotification(
+                        complaint.getCitizen(),
+                        complaint,
+                        "Officer Assigned: " + complaint.getTrackingNumber(),
+                        "Field Officer " + officer.getUsername() + " has been assigned to your issue.",
+                        "ASSIGNED"
+                );
+            }
         }
 
         if (departmentId != null) {
@@ -194,6 +228,16 @@ public class ComplaintService {
             if (complaint.getSlaDeadline() != null) {
                 complaint.setIsSlaBreached(Instant.now().isAfter(complaint.getSlaDeadline()));
             }
+
+            if (complaint.getCitizen() != null) {
+                notificationService.createNotification(
+                        complaint.getCitizen(),
+                        complaint,
+                        "Issue Resolved: " + complaint.getTrackingNumber(),
+                        "Field crew has marked '" + complaint.getTitle() + "' as resolved. Please inspect and rate the repair.",
+                        "RESOLVED"
+                );
+            }
         }
 
         if (complaint.getAssignedOfficer() == null && officerOrAdmin != null) {
@@ -201,6 +245,59 @@ public class ComplaintService {
         }
 
         Complaint saved = complaintRepository.save(complaint);
+        return ComplaintResponse.fromEntity(saved);
+    }
+
+    @Transactional
+    public ComplaintResponse rateComplaint(Long id, RateResolutionRequest request, User citizen) {
+        Complaint complaint = complaintRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
+
+        complaint.setCitizenRating(request.getRating());
+        complaint.setCitizenFeedback(request.getFeedback());
+        complaint.setStatus("CLOSED");
+        complaint.setClosedAt(Instant.now());
+        complaint.setUpdatedAt(Instant.now());
+
+        Complaint saved = complaintRepository.save(complaint);
+
+        if (saved.getAssignedOfficer() != null) {
+            notificationService.createNotification(
+                    saved.getAssignedOfficer(),
+                    saved,
+                    "Citizen Feedback: " + saved.getTrackingNumber(),
+                    "Citizen rated your resolution " + request.getRating() + "/5 stars: \"" + (request.getFeedback() != null ? request.getFeedback() : "Satisfactory") + "\"",
+                    "RATED"
+            );
+        }
+
+        return ComplaintResponse.fromEntity(saved);
+    }
+
+    @Transactional
+    public ComplaintResponse reopenComplaint(Long id, ReopenComplaintRequest request, User citizen) {
+        Complaint complaint = complaintRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Complaint not found with id: " + id));
+
+        complaint.setStatus("REOPENED");
+        complaint.setUpdatedAt(Instant.now());
+        String reason = request.getReason() != null ? request.getReason() : "Citizen disputed resolution";
+        complaint.setResolutionNotes((complaint.getResolutionNotes() != null ? complaint.getResolutionNotes() + " | Reopened: " : "Reopened: ") + reason);
+        complaint.setSlaDeadline(Instant.now().plus(24, ChronoUnit.HOURS));
+        complaint.setIsSlaBreached(false);
+
+        Complaint saved = complaintRepository.save(complaint);
+
+        if (saved.getAssignedOfficer() != null) {
+            notificationService.createNotification(
+                    saved.getAssignedOfficer(),
+                    saved,
+                    "Ticket Reopened: " + saved.getTrackingNumber(),
+                    "Citizen disputed resolution for '" + saved.getTitle() + "'. Reason: " + reason,
+                    "REOPENED"
+            );
+        }
+
         return ComplaintResponse.fromEntity(saved);
     }
 
@@ -221,12 +318,21 @@ public class ComplaintService {
 
         double complianceRate = total > 0 ? ((double) (total - breached) / total) * 100.0 : 100.0;
 
+        double avgRating = all.stream()
+                .filter(c -> c.getCitizenRating() != null)
+                .mapToInt(Complaint::getCitizenRating)
+                .average()
+                .orElse(5.0);
+        long totalRatings = all.stream().filter(c -> c.getCitizenRating() != null).count();
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalTickets", total);
         stats.put("activeTickets", active);
         stats.put("resolvedTickets", resolved);
         stats.put("breachedTickets", breached);
         stats.put("slaCompliancePercentage", Math.round(complianceRate * 10.0) / 10.0);
+        stats.put("averageCitizenRating", Math.round(avgRating * 10.0) / 10.0);
+        stats.put("totalRatingsCount", totalRatings);
         return stats;
     }
 }

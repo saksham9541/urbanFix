@@ -102,5 +102,27 @@ public class ComplaintController {
         ComplaintResponse updated = complaintService.updateStatus(id, request, officerOrAdmin);
         return ResponseEntity.ok(updated);
     }
+
+    @PostMapping("/{id}/rate")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    public ResponseEntity<ComplaintResponse> rateComplaint(
+            @PathVariable Long id,
+            @Valid @RequestBody RateResolutionRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User citizen = userDetails != null ? userRepository.findById(userDetails.getId()).orElse(null) : null;
+        ComplaintResponse rated = complaintService.rateComplaint(id, request, citizen);
+        return ResponseEntity.ok(rated);
+    }
+
+    @PostMapping("/{id}/reopen")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    public ResponseEntity<ComplaintResponse> reopenComplaint(
+            @PathVariable Long id,
+            @Valid @RequestBody ReopenComplaintRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User citizen = userDetails != null ? userRepository.findById(userDetails.getId()).orElse(null) : null;
+        ComplaintResponse reopened = complaintService.reopenComplaint(id, request, citizen);
+        return ResponseEntity.ok(reopened);
+    }
 }
 

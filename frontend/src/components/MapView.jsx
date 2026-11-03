@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import { getAllComplaints } from '../services/api';
-import { RefreshCw, ExternalLink } from 'lucide-react';
+import { RefreshCw, ExternalLink, Flame } from 'lucide-react';
 
 const createIcon = (status) => {
   let color = 'blue';
@@ -23,6 +23,7 @@ const createIcon = (status) => {
 export default function MapView({ onTrackComplaint, refreshTrigger }) {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(true);
   const centerPosition = [28.6250, 77.2150]; // City center
 
   const fetchComplaints = async () => {
@@ -65,8 +66,19 @@ export default function MapView({ onTrackComplaint, refreshTrigger }) {
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> In Progress ({complaints.filter(c => c.status === 'IN_PROGRESS').length})
           </span>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Resolved ({complaints.filter(c => c.status === 'RESOLVED').length})
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Resolved ({complaints.filter(c => c.status === 'RESOLVED' || c.status === 'CLOSED').length})
           </span>
+          <button
+            onClick={() => setShowHeatmap(!showHeatmap)}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
+              showHeatmap
+                ? 'bg-rose-500 text-white border-rose-600 shadow-sm'
+                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+            }`}
+          >
+            <Flame className={`w-3 h-3 ${showHeatmap ? 'text-white' : 'text-rose-500'}`} />
+            {showHeatmap ? 'Hotspots Active' : 'Show Hotspots'}
+          </button>
         </div>
       </div>
 
@@ -81,6 +93,21 @@ export default function MapView({ onTrackComplaint, refreshTrigger }) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
+          {/* Geospatial Hotspot Density Heat Rings */}
+          {showHeatmap && complaints.filter(c => c.latitude && c.longitude && c.status !== 'RESOLVED' && c.status !== 'CLOSED').map(issue => (
+            <Circle
+              key={`heat-${issue.id}`}
+              center={[issue.latitude, issue.longitude]}
+              radius={issue.severity === 'CRITICAL' ? 450 : 280}
+              pathOptions={{
+                color: issue.severity === 'CRITICAL' ? '#f43f5e' : '#f59e0b',
+                fillColor: issue.severity === 'CRITICAL' ? '#f43f5e' : '#f59e0b',
+                fillOpacity: 0.35,
+                weight: 1.5,
+              }}
+            />
+          ))}
           {complaints.filter(c => c.latitude && c.longitude).map((issue) => (
             <Marker
               key={issue.id}

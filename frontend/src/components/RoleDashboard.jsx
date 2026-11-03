@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Shield, User, Briefcase, CheckCircle2, Lock, AlertTriangle, Key, LogOut,
-  Clock, MapPin, Building2, UserCheck, ArrowRight, Check, Send
+  Clock, MapPin, Building2, UserCheck, ArrowRight, Check, Send, Star
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -263,6 +263,13 @@ export default function RoleDashboard() {
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Resolved on Record
                         </span>
                       )}
+
+                      {ticket.citizenRating && (
+                        <div className="flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-bold">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          <span>Rated: {ticket.citizenRating}/5 Stars</span>
+                        </div>
+                      )}
                     </div>
 
                     {selectedTicketToResolve === ticket.id && (
@@ -307,7 +314,7 @@ export default function RoleDashboard() {
       {isAdmin && (
         <div className="space-y-5 pt-2">
           {slaSummary && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
                 <div className="text-[11px] text-slate-500 font-medium">Total Tickets</div>
                 <div className="text-xl font-bold text-slate-900 mt-0.5">{slaSummary.totalTickets}</div>
@@ -323,6 +330,12 @@ export default function RoleDashboard() {
               <div className="p-3.5 bg-indigo-50/60 border border-indigo-200 rounded-xl">
                 <div className="text-[11px] text-indigo-700 font-medium">SLA Compliance</div>
                 <div className="text-xl font-bold text-indigo-800 mt-0.5">{slaSummary.slaCompliancePercentage}%</div>
+              </div>
+              <div className="p-3.5 bg-amber-50/70 border border-amber-300 rounded-xl">
+                <div className="text-[11px] text-amber-800 font-medium">Citizen Rating</div>
+                <div className="text-xl font-bold text-amber-900 mt-0.5 flex items-center gap-1">
+                  ⭐ {slaSummary.averageCitizenRating || 5.0} <span className="text-xs font-normal text-slate-500">/ 5.0</span>
+                </div>
               </div>
             </div>
           )}

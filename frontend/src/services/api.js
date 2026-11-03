@@ -166,3 +166,34 @@ export const checkAiServiceHealth = async () => {
     return { success: false, error: error.message };
   }
 };
+
+// Notification & Feedback Services (Phase 5)
+export const getMyNotifications = async () => {
+  const response = await apiClient.get('/notifications');
+  return response.data;
+};
+
+export const getUnreadNotificationCount = async () => {
+  const response = await apiClient.get('/notifications/unread-count');
+  return response.data;
+};
+
+export const markNotificationRead = async (id) => {
+  const response = await apiClient.patch(`/notifications/${id}/read`);
+  return response.data;
+};
+
+export const markAllNotificationsRead = async () => {
+  const response = await apiClient.patch('/notifications/read-all');
+  return response.data;
+};
+
+export const rateComplaintResolution = async (complaintId, { rating, feedback }) => {
+  const response = await apiClient.post(`/complaints/${complaintId}/rate`, { rating, feedback });
+  return response.data;
+};
+
+export const reopenComplaint = async (complaintId, { reason }) => {
+  const response = await apiClient.post(`/complaints/${complaintId}/reopen`, { reason });
+  return response.data;
+};

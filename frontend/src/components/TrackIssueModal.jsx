@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Search, CheckCircle2, Clock, AlertTriangle, MapPin, Shield, Calendar, ArrowRight, Sparkles } from 'lucide-react';
-import { trackComplaint } from '../services/api';
+import { X, Search, CheckCircle2, Clock, AlertTriangle, MapPin, Shield, Calendar, ArrowRight, Sparkles, Star, ThumbsUp, RotateCcw, MessageSquare } from 'lucide-react';
+import { trackComplaint, rateComplaintResolution, reopenComplaint } from '../services/api';
 
 const STATUS_STEPS = [
   { key: 'SUBMITTED', label: 'Submitted', desc: 'Received & Logged' },
@@ -14,8 +14,52 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [ratingStars, setRatingStars] = useState(5);
+  const [ratingFeedback, setRatingFeedback] = useState('');
+  const [reopenReason, setReopenReason] = useState('');
+  const [showReopenForm, setShowReopenForm] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleRateSubmit = async (e) => {
+    e.preventDefault();
+    if (!complaint) return;
+    setSubmittingFeedback(true);
+    try {
+      const updated = await rateComplaintResolution(complaint.id, {
+        rating: ratingStars,
+        feedback: ratingFeedback || 'Work verified and approved by citizen.',
+      });
+      setComplaint(updated);
+      setFeedbackSuccess('Thank you! Your rating has been recorded and ticket marked CLOSED.');
+      setTimeout(() => setFeedbackSuccess(''), 5000);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit feedback');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  const handleReopenSubmit = async (e) => {
+    e.preventDefault();
+    if (!complaint || !reopenReason.trim()) return;
+    setSubmittingFeedback(true);
+    try {
+      const updated = await reopenComplaint(complaint.id, {
+        reason: reopenReason,
+      });
+      setComplaint(updated);
+      setShowReopenForm(false);
+      setFeedbackSuccess('Ticket reopened and escalated back to municipal department queue.');
+      setTimeout(() => setFeedbackSuccess(''), 5000);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reopen complaint');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
@@ -223,6 +267,147 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
                     )}
                   </div>
                 )}
+
+                {/* Citizen Feedback & Verification Loop (Phase 5) */}
+                {complaint.citizenRating ? (
+                  <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-amber-900 flex items-center gap-1.5">
+                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        Citizen Verified Resolution Rating
+                      </span>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((st) => (
+                          <Star
+                            key={st}
+                            className={`w-3.5 h-3.5 ${
+                              st <= complaint.citizenRating
+                                ? 'text-amber-500 fill-amber-500'
+                                : 'text-slate-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {complaint.citizenFeedback && (
+                      <p className="text-amber-800 italic bg-white/80 p-2.5 rounded-lg border border-amber-200/60">
+                        "{complaint.citizenFeedback}"
+                      </p>
+                    )}
+                    <div className="text-[10px] text-amber-700">
+                      Ticket officially finalized and CLOSED.
+                    </div>
+                  </div>
+                ) : (complaint.status === 'RESOLVED' || complaint.status === 'CLOSED') ? (
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 via-white to-sky-50 border border-indigo-200 text-xs space-y-3 shadow-xs">
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                        <ThumbsUp className="w-4 h-4 text-sky-600" />
+                        Verify Repair & Rate Municipal Service
+                      </h4>
+                      <p className="text-slate-500 text-[11px] mt-0.5">
+                        Has the field crew satisfactorily resolved this issue? Confirm to close the ticket or dispute to reopen.
+                      </p>
+                    </div>
+
+                    {feedbackSuccess && (
+                      <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs font-semibold">
+                        {feedbackSuccess}
+                      </div>
+                    )}
+
+                    {!showReopenForm ? (
+                      <form onSubmit={handleRateSubmit} className="space-y-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                            Rate Quality of Resolution:
+                          </label>
+                          <div className="flex items-center gap-1.5">
+                            {[1, 2, 3, 4, 5].map((st) => (
+                              <button
+                                key={st}
+                                type="button"
+                                onClick={() => setRatingStars(st)}
+                                className="p-1 hover:scale-110 transition-transform"
+                              >
+                                <Star
+                                  className={`w-6 h-6 ${
+                                    st <= ratingStars
+                                      ? 'text-amber-500 fill-amber-500'
+                                      : 'text-slate-300 hover:text-amber-300'
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                            <span className="text-xs font-bold text-amber-700 ml-2">
+                              {ratingStars} / 5 Stars
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Optional feedback: e.g. Cleanly paved and all debris removed..."
+                            value={ratingFeedback}
+                            onChange={(e) => setRatingFeedback(e.target.value)}
+                            className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setShowReopenForm(true)}
+                            className="text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center gap-1 transition-colors"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" /> Dispute & Reopen Issue
+                          </button>
+
+                          <button
+                            type="submit"
+                            disabled={submittingFeedback}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-sm transition-all flex items-center gap-1"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {submittingFeedback ? 'Submitting...' : 'Approve & Close Ticket'}
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleReopenSubmit} className="space-y-3 p-3 bg-rose-50/50 border border-rose-200 rounded-lg">
+                        <div className="text-xs font-bold text-rose-900 flex items-center gap-1">
+                          <AlertTriangle className="w-4 h-4 text-rose-600" />
+                          Specify Dispute Reason:
+                        </div>
+                        <textarea
+                          rows={2}
+                          required
+                          placeholder="e.g. Loose stones left in pothole, hazard still present..."
+                          value={reopenReason}
+                          onChange={(e) => setReopenReason(e.target.value)}
+                          className="w-full text-xs p-2 border border-rose-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowReopenForm(false)}
+                            className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={submittingFeedback}
+                            className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition-colors"
+                          >
+                            Submit Reopen Notice
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : (

@@ -30,6 +30,9 @@ public class DataInitializer implements CommandLineRunner {
     private com.urbanfix.backend.department.DepartmentRepository departmentRepository;
 
     @Autowired
+    private com.urbanfix.backend.notification.NotificationRepository notificationRepository;
+
+    @Autowired
     private com.urbanfix.backend.complaint.ComplaintRepository complaintRepository;
 
     @Autowired
@@ -181,7 +184,66 @@ public class DataInitializer implements CommandLineRunner {
             c3.setAiPredictedCategory("STREETLIGHT_ELECTRICITY");
             complaintRepository.save(c3);
 
-            log.info("Seeded 3 demo civic complaints with departments and SLA deadlines.");
+            com.urbanfix.backend.complaint.Complaint c4 = new com.urbanfix.backend.complaint.Complaint(
+                    "UF-2026-10004",
+                    "Overgrown Tree Branch Blocking Street Sign",
+                    "Heavy branch sagging over street nameboard and pedestrian crossing.",
+                    "PARKS_GARDENS",
+                    "LOW",
+                    28.6220,
+                    77.2190,
+                    "Janpath Road Lane 3",
+                    null,
+                    demoCitizen
+            );
+            c4.setStatus("CLOSED");
+            c4.setAssignedOfficer(demoOfficer);
+            c4.setDepartment(departmentRepository.findByCode("PARKS").orElse(null));
+            c4.setSlaDeadline(Instant.now().minus(2, java.time.temporal.ChronoUnit.HOURS));
+            c4.setResolvedAt(Instant.now().minus(4, java.time.temporal.ChronoUnit.HOURS));
+            c4.setClosedAt(Instant.now());
+            c4.setCitizenRating(5);
+            c4.setCitizenFeedback("Pruning crew arrived swiftly and cleared the sightline completely. Excellent work!");
+            c4.setIsSlaBreached(false);
+            c4.setResolutionNotes("Tree canopy trimmed and hauled away.");
+            c4.setAiConfidence(0.91);
+            c4.setAiPredictedCategory("PARKS_FORESTRY");
+            complaintRepository.save(c4);
+
+            // Seed initial notifications for demo users
+            notificationRepository.save(new com.urbanfix.backend.notification.Notification(
+                    demoCitizen,
+                    c1,
+                    "Officer Assigned: UF-2026-10001",
+                    "Field Officer Sarah has been assigned to your pothole report on Outer Ring Road.",
+                    "ASSIGNED"
+            ));
+
+            notificationRepository.save(new com.urbanfix.backend.notification.Notification(
+                    demoCitizen,
+                    c3,
+                    "Issue Resolved: UF-2026-10003",
+                    "Streetlight fixture has been replaced. Please rate the quality of this municipal repair.",
+                    "RESOLVED"
+            ));
+
+            notificationRepository.save(new com.urbanfix.backend.notification.Notification(
+                    demoOfficer,
+                    c1,
+                    "New Incident Assigned: UF-2026-10001",
+                    "You have been assigned to investigate and repair Deep Pothole on Outer Ring Road.",
+                    "ASSIGNED"
+            ));
+
+            notificationRepository.save(new com.urbanfix.backend.notification.Notification(
+                    demoOfficer,
+                    c4,
+                    "Citizen Feedback: UF-2026-10004",
+                    "John Citizen rated your resolution 5/5 stars: 'Pruning crew arrived swiftly and cleared the sightline completely.'",
+                    "RATED"
+            ));
+
+            log.info("Seeded 4 demo civic complaints and notifications for Phase 5.");
         }
     }
 }

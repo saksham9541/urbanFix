@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User, LogIn, LogOut, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
-export default function Navbar({ backendHealth, onOpenAuth, onOpenReport }) {
+export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpenTrack }) {
   const { user, isAuthenticated, roles, logout } = useAuth();
 
   return (
@@ -20,7 +21,7 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport }) {
                 UrbanFix AI
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
-                Phase 2 Engine
+                Phase 5 Engine
               </span>
             </div>
           </Link>
@@ -69,6 +70,7 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport }) {
             {/* Auth Button / User Badge */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
+                <NotificationBell onTrackComplaint={onOpenTrack} />
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200 text-xs">
                   <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
                     {user?.firstName?.[0] || user?.username?.[0] || 'U'}

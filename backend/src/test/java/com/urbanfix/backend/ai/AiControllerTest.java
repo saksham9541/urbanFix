@@ -48,3 +48,4 @@ class AiControllerTest {
                 .andExpect(jsonPath("$.detected_category").isNotEmpty());
     }
 }
+

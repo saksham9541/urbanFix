@@ -78,6 +78,15 @@ public class Complaint {
     @Column(name = "resolution_image_url", columnDefinition = "TEXT")
     private String resolutionImageUrl;
 
+    @Column(name = "citizen_rating")
+    private Integer citizenRating;
+
+    @Column(name = "citizen_feedback", columnDefinition = "TEXT")
+    private String citizenFeedback;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
     public Complaint() {
     }
 
@@ -281,6 +290,30 @@ public class Complaint {
 
     public void setResolutionImageUrl(String resolutionImageUrl) {
         this.resolutionImageUrl = resolutionImageUrl;
+    }
+
+    public Integer getCitizenRating() {
+        return citizenRating;
+    }
+
+    public void setCitizenRating(Integer citizenRating) {
+        this.citizenRating = citizenRating;
+    }
+
+    public String getCitizenFeedback() {
+        return citizenFeedback;
+    }
+
+    public void setCitizenFeedback(String citizenFeedback) {
+        this.citizenFeedback = citizenFeedback;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Instant closedAt) {
+        this.closedAt = closedAt;
     }
 }
 

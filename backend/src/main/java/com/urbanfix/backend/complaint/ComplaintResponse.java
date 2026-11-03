@@ -32,6 +32,9 @@ public class ComplaintResponse {
     private String aiPredictedCategory;
     private Double aiConfidence;
     private Boolean aiVerified;
+    private Integer citizenRating;
+    private String citizenFeedback;
+    private Instant closedAt;
 
     public ComplaintResponse() {
     }
@@ -89,6 +92,9 @@ public class ComplaintResponse {
         dto.setAiPredictedCategory(complaint.getAiPredictedCategory());
         dto.setAiConfidence(complaint.getAiConfidence());
         dto.setAiVerified(complaint.getAiConfidence() != null && complaint.getAiConfidence() >= 0.75);
+        dto.setCitizenRating(complaint.getCitizenRating());
+        dto.setCitizenFeedback(complaint.getCitizenFeedback());
+        dto.setClosedAt(complaint.getClosedAt());
         return dto;
     }
 
@@ -314,6 +320,30 @@ public class ComplaintResponse {
 
     public void setAiVerified(Boolean aiVerified) {
         this.aiVerified = aiVerified;
+    }
+
+    public Integer getCitizenRating() {
+        return citizenRating;
+    }
+
+    public void setCitizenRating(Integer citizenRating) {
+        this.citizenRating = citizenRating;
+    }
+
+    public String getCitizenFeedback() {
+        return citizenFeedback;
+    }
+
+    public void setCitizenFeedback(String citizenFeedback) {
+        this.citizenFeedback = citizenFeedback;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Instant closedAt) {
+        this.closedAt = closedAt;
     }
 }
 

@@ -37,3 +37,4 @@ public class RateResolutionRequest {
         this.feedback = feedback;
     }
 }
+

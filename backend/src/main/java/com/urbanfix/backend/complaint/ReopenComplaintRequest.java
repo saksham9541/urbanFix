@@ -22,3 +22,4 @@ public class ReopenComplaintRequest {
         this.reason = reason;
     }
 }
+

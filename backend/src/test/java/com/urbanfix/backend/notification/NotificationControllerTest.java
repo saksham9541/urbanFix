@@ -71,3 +71,4 @@ class NotificationControllerTest {
                 .andExpect(jsonPath("$.citizenFeedback").value("High quality pothole repair and cleanup!"));
     }
 }
+

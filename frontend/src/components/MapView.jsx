@@ -1,66 +1,76 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { getAllComplaints } from '../services/api';
+import { RefreshCw, ExternalLink } from 'lucide-react';
 
-// Fix for default Leaflet marker icon in React/Vite bundlers
-const customIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+const createIcon = (status) => {
+  let color = 'blue';
+  if (status === 'RESOLVED') color = 'green';
+  else if (status === 'IN_PROGRESS') color = 'orange';
+  else if (status === 'SUBMITTED') color = 'red';
 
-const sampleIssues = [
-  {
-    id: 1,
-    title: 'Major Pothole on Main Boulevard',
-    category: 'Roads & Infrastructure',
-    severity: 'HIGH',
-    status: 'IN_PROGRESS',
-    coords: [28.6139, 77.2090],
-  },
-  {
-    id: 2,
-    title: 'Street Light Outage - Sector 4',
-    category: 'Electrical & Lighting',
-    severity: 'MEDIUM',
-    status: 'SUBMITTED',
-    coords: [28.6250, 77.2150],
-  },
-  {
-    id: 3,
-    title: 'Overflowing Garbage Container',
-    category: 'Sanitation',
-    severity: 'HIGH',
-    status: 'ASSIGNED',
-    coords: [28.6080, 77.2010],
-  }
-];
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+};
 
-export default function MapView() {
-  const centerPosition = [28.6139, 77.2090]; // Default civic center
+export default function MapView({ onTrackComplaint, refreshTrigger }) {
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const centerPosition = [28.6250, 77.2150]; // City center
+
+  const fetchComplaints = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllComplaints();
+      setComplaints(data);
+    } catch (err) {
+      console.error('Failed to load map complaints', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [refreshTrigger]);
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
+    <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-lg bg-white">
       <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-slate-800 text-sm">Interactive Civic Issue Heatmap</h3>
-          <p className="text-xs text-slate-500">Live GPS tracking and OpenStreetMap geospatial clustering</p>
+          <h3 className="font-bold text-slate-800 text-sm">Interactive Civic Issue GIS Map</h3>
+          <p className="text-xs text-slate-500">Live GPS tracking of citizen reported hazards across municipal zones</p>
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-medium border border-rose-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> High Priority
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchComplaints}
+            disabled={loading}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors"
+            title="Refresh Map Points"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[11px] font-semibold border border-rose-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> New ({complaints.filter(c => c.status === 'SUBMITTED').length})
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-medium border border-amber-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Medium
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> In Progress ({complaints.filter(c => c.status === 'IN_PROGRESS').length})
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Resolved ({complaints.filter(c => c.status === 'RESOLVED').length})
           </span>
         </div>
       </div>
 
-      <div className="h-[380px] w-full relative z-0">
+      <div className="h-[420px] w-full relative z-0">
         <MapContainer
           center={centerPosition}
           zoom={13}
@@ -71,19 +81,43 @@ export default function MapView() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {sampleIssues.map((issue) => (
-            <Marker key={issue.id} position={issue.coords} icon={customIcon}>
+          {complaints.filter(c => c.latitude && c.longitude).map((issue) => (
+            <Marker
+              key={issue.id}
+              position={[issue.latitude, issue.longitude]}
+              icon={createIcon(issue.status)}
+            >
               <Popup>
-                <div className="text-xs p-1">
-                  <div className="font-bold text-slate-900 mb-1">{issue.title}</div>
-                  <div className="text-slate-600 mb-1">Category: {issue.category}</div>
-                  <div className="flex gap-1.5">
-                    <span className="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded font-semibold text-[10px]">
-                      {issue.severity}
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]">
+                <div className="text-xs p-1 max-w-[200px] space-y-1.5">
+                  <div className="font-mono font-bold text-[10px] text-sky-700">{issue.trackingNumber}</div>
+                  <div className="font-bold text-slate-900 leading-snug">{issue.title}</div>
+                  <div className="text-[11px] text-slate-500 truncate">{issue.address}</div>
+
+                  {issue.imageUrl && (
+                    <div className="h-20 w-full rounded overflow-hidden">
+                      <img src={issue.imageUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                      issue.status === 'RESOLVED'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : issue.status === 'IN_PROGRESS'
+                        ? 'bg-indigo-100 text-indigo-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}>
                       {issue.status}
                     </span>
+
+                    {onTrackComplaint && (
+                      <button
+                        onClick={() => onTrackComplaint(issue.trackingNumber)}
+                        className="text-[10px] text-sky-600 hover:text-sky-800 font-semibold flex items-center gap-0.5"
+                      >
+                        Track <ExternalLink className="w-2.5 h-2.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </Popup>
@@ -94,4 +128,3 @@ export default function MapView() {
     </div>
   );
 }
-

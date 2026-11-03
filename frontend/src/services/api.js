@@ -22,12 +22,11 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Intercept 401 unauthorized to automatically clear session if expired
+// Intercept 401 unauthorized
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Don't clear on login attempt failures
       if (!error.config.url.includes('/auth/login')) {
         localStorage.removeItem('urbanfix_token');
         localStorage.removeItem('urbanfix_user');
@@ -78,5 +77,43 @@ export const getOfficerDashboard = async () => {
 
 export const getAdminDashboard = async () => {
   const response = await apiClient.get('/admin/dashboard');
+  return response.data;
+};
+
+// Complaints Services (Phase 2)
+export const getAllComplaints = async (status, category) => {
+  const params = {};
+  if (status) params.status = status;
+  if (category) params.category = category;
+  const response = await apiClient.get('/complaints', { params });
+  return response.data;
+};
+
+export const getMyComplaints = async () => {
+  const response = await apiClient.get('/complaints/my');
+  return response.data;
+};
+
+export const trackComplaint = async (trackingNumber) => {
+  const response = await apiClient.get(`/complaints/track/${encodeURIComponent(trackingNumber)}`);
+  return response.data;
+};
+
+export const createComplaint = async (complaintData) => {
+  const response = await apiClient.post('/complaints', complaintData);
+  return response.data;
+};
+
+export const updateComplaintStatus = async (complaintId, updateData) => {
+  const response = await apiClient.patch(`/complaints/${complaintId}/status`, updateData);
+  return response.data;
+};
+
+export const uploadImageApi = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await apiClient.post('/uploads', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };

@@ -27,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
     private UserRepository userRepository;
 
     @Autowired
+    private com.urbanfix.backend.complaint.ComplaintRepository complaintRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -73,5 +76,63 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             log.info("Seeded demo Admin user: admin@urbanfix.com / Admin@123");
         }
+
+        // 5. Seed Initial Sample Complaints for Live Demo
+        if (complaintRepository.count() == 0) {
+            User demoCitizen = userRepository.findByUsername("citizen").orElse(null);
+            User demoOfficer = userRepository.findByUsername("officer").orElse(null);
+
+            com.urbanfix.backend.complaint.Complaint c1 = new com.urbanfix.backend.complaint.Complaint(
+                    "UF-2026-10001",
+                    "Deep Pothole on Outer Ring Road",
+                    "A dangerous pothole near the highway exit causing severe traffic slowing and vehicle damage.",
+                    "ROADS_INFRASTRUCTURE",
+                    "HIGH",
+                    28.6315,
+                    77.2167,
+                    "Outer Ring Road, Near Junction 4",
+                    "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=600&auto=format&fit=crop&q=80",
+                    demoCitizen
+            );
+            c1.setStatus("IN_PROGRESS");
+            c1.setAssignedOfficer(demoOfficer);
+            complaintRepository.save(c1);
+
+            com.urbanfix.backend.complaint.Complaint c2 = new com.urbanfix.backend.complaint.Complaint(
+                    "UF-2026-10002",
+                    "Overflowing Garbage Dumpster at Green Park",
+                    "Municipal waste bin has not been cleared for 4 days, causing foul smell and health hazard.",
+                    "GARBAGE_SANITATION",
+                    "MEDIUM",
+                    28.6180,
+                    77.2050,
+                    "Sector 4 Civic Park Gate B",
+                    "https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?w=600&auto=format&fit=crop&q=80",
+                    demoCitizen
+            );
+            c2.setStatus("SUBMITTED");
+            complaintRepository.save(c2);
+
+            com.urbanfix.backend.complaint.Complaint c3 = new com.urbanfix.backend.complaint.Complaint(
+                    "UF-2026-10003",
+                    "Broken High-Mast Streetlight",
+                    "Streetlight fixture short-circuited and pole lamp is dark at night near pedestrian crossing.",
+                    "STREETLIGHT_ELECTRICITY",
+                    "LOW",
+                    28.6250,
+                    77.2210,
+                    "Barakhamba Road Pole 12",
+                    null,
+                    demoCitizen
+            );
+            c3.setStatus("RESOLVED");
+            c3.setAssignedOfficer(demoOfficer);
+            c3.setResolvedAt(Instant.now());
+            c3.setResolutionNotes("LED bulb unit and junction fuse replaced by field crew.");
+            complaintRepository.save(c3);
+
+            log.info("Seeded 3 demo civic complaints for map and feed visualization.");
+        }
     }
 }
+

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User, LogIn, LogOut } from 'lucide-react';
+import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User, LogIn, LogOut, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export default function Navbar({ backendHealth, onOpenAuth }) {
+export default function Navbar({ backendHealth, onOpenAuth, onOpenReport }) {
   const { user, isAuthenticated, roles, logout } = useAuth();
 
   return (
@@ -20,7 +20,7 @@ export default function Navbar({ backendHealth, onOpenAuth }) {
                 UrbanFix AI
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
-                Phase 2 JWT & RBAC
+                Phase 2 Engine
               </span>
             </div>
           </Link>
@@ -30,22 +30,17 @@ export default function Navbar({ backendHealth, onOpenAuth }) {
             <Link to="/" className="text-sky-600 hover:text-sky-700 transition-colors">
               Home
             </Link>
-            <a href="#features" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 text-slate-400" />
-              Features
-            </a>
             <a href="#map-preview" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-slate-400" />
               Live Map
             </a>
-            <a href="#departments" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-slate-400" />
-              Departments
-            </a>
-            <a href="#analytics" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-              <BarChart3 className="w-4 h-4 text-slate-400" />
-              Analytics
-            </a>
+            <button
+              onClick={onOpenReport}
+              className="text-slate-600 hover:text-sky-600 transition-colors flex items-center gap-1.5 font-medium"
+            >
+              <PlusCircle className="w-4 h-4 text-sky-500" />
+              Report Issue
+            </button>
           </nav>
 
           {/* Backend Status & Auth CTA */}

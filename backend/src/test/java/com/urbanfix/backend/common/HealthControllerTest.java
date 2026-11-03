@@ -29,7 +29,7 @@ class HealthControllerTest {
 
     @Test
     void protectedEndpointShouldRequireAuthentication() throws Exception {
-        mockMvc.perform(get("/api/complaints").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/complaints/my").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 }

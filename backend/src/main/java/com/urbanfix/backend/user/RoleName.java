@@ -5,3 +5,4 @@ public enum RoleName {
     ROLE_OFFICER,
     ROLE_ADMIN
 }
+

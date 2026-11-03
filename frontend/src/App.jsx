@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import AuthModal from './components/AuthModal';
+import ReportIssueModal from './components/ReportIssueModal';
+import TrackIssueModal from './components/TrackIssueModal';
 import { AuthProvider } from './context/AuthContext';
 import { checkBackendHealth } from './services/api';
 
@@ -13,7 +15,11 @@ function AppContent() {
     data: null,
     error: null,
   });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+  const [activeTrackingNumber, setActiveTrackingNumber] = useState('UF-2026-10001');
 
   const fetchHealth = async () => {
     const result = await checkBackendHealth();
@@ -30,11 +36,17 @@ function AppContent() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleOpenTrack = (trackingNumber) => {
+    setActiveTrackingNumber(trackingNumber || 'UF-2026-10001');
+    setIsTrackModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 selection:bg-sky-500 selection:text-white">
       <Navbar
         backendHealth={backendHealth}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenReport={() => setIsReportModalOpen(true)}
       />
       
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,6 +58,8 @@ function AppContent() {
                 backendHealth={backendHealth}
                 onRefreshHealth={fetchHealth}
                 onOpenAuth={() => setIsAuthModalOpen(true)}
+                onOpenReport={() => setIsReportModalOpen(true)}
+                onOpenTrack={handleOpenTrack}
               />
             }
           />
@@ -57,6 +71,21 @@ function AppContent() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <ReportIssueModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onComplaintCreated={(newComplaint) => {
+          // Open tracking modal or keep open
+        }}
+      />
+
+      <TrackIssueModal
+        isOpen={isTrackModalOpen}
+        onClose={() => setIsTrackModalOpen(false)}
+        initialTrackingNumber={activeTrackingNumber}
       />
     </div>
   );

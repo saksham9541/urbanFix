@@ -92,3 +92,4 @@ public class AuthResponse {
         this.roles = roles;
     }
 }
+

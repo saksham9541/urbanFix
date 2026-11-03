@@ -65,6 +65,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/complaints").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/complaints/track/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/uploads").permitAll()
                         .requestMatchers("/api/citizen/**").hasAnyRole("CITIZEN", "ADMIN")
                         .requestMatchers("/api/officer/**").hasAnyRole("OFFICER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

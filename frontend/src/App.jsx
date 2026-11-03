@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
+import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 import AuthModal from './components/AuthModal';
 import ReportIssueModal from './components/ReportIssueModal';
 import TrackIssueModal from './components/TrackIssueModal';
@@ -52,23 +54,45 @@ function AppContent() {
       
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
         <Routes>
+          {/* 1. Public Landing Page */}
           <Route
             path="/"
             element={
-              <HomePage
-                backendHealth={backendHealth}
-                onRefreshHealth={fetchHealth}
-                onOpenAuth={() => setIsAuthModalOpen(true)}
+              <LandingPage
                 onOpenReport={() => setIsReportModalOpen(true)}
                 onOpenTrack={handleOpenTrack}
               />
             }
           />
+
+          {/* 2. Dedicated Authorization / Sign In Page */}
+          <Route
+            path="/auth"
+            element={<AuthPage />}
+          />
+
+          {/* 3. Operations Portal & Dashboard ("All the rest") */}
+          <Route
+            path="/dashboard"
+            element={
+              <DashboardPage
+                backendHealth={backendHealth}
+                onRefreshHealth={fetchHealth}
+                onOpenReport={() => setIsReportModalOpen(true)}
+                onOpenTrack={handleOpenTrack}
+              />
+            }
+          />
+
+          {/* Fallback alias */}
+          <Route path="/portal" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
       <Footer />
 
+      {/* Global Modals */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -79,7 +103,9 @@ function AppContent() {
         onClose={() => setIsReportModalOpen(false)}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onComplaintCreated={(newComplaint) => {
-          // Open tracking modal or keep open
+          if (newComplaint?.trackingNumber) {
+            handleOpenTrack(newComplaint.trackingNumber);
+          }
         }}
       />
 

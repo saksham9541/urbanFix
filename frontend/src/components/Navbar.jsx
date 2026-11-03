@@ -1,11 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User, LogIn, LogOut, PlusCircle } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, 
+  Building2, User, LogIn, LogOut, PlusCircle, LayoutDashboard, Home
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpenTrack }) {
   const { user, isAuthenticated, roles, logout } = useAuth();
+  const location = useLocation();
+
+  const isCurrent = (path) => location.pathname === path;
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -21,20 +27,33 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpen
                 UrbanFix AI
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
-                Phase 5 Engine
+                Municipal Portal
               </span>
             </div>
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
-            <Link to="/" className="text-sky-600 hover:text-sky-700 transition-colors">
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+            <Link 
+              to="/" 
+              className={`transition-colors flex items-center gap-1.5 ${
+                isCurrent('/') ? 'text-sky-600 font-bold' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Home className="w-4 h-4" />
               Home
             </Link>
-            <a href="#map-preview" className="hover:text-slate-900 transition-colors flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-slate-400" />
-              Live Map
-            </a>
+
+            <Link 
+              to="/dashboard" 
+              className={`transition-colors flex items-center gap-1.5 ${
+                isCurrent('/dashboard') ? 'text-sky-600 font-bold' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Portal & Feed
+            </Link>
+
             <button
               onClick={onOpenReport}
               className="text-slate-600 hover:text-sky-600 transition-colors flex items-center gap-1.5 font-medium"
@@ -90,14 +109,13 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpen
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={onOpenAuth}
+              <Link
+                to="/auth"
                 className="inline-flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Sign In / Demo</span>
-              </button>
+              </Link>
             )}
           </div>
         </div>

@@ -106,3 +106,4 @@ volumes:
   postgres_data:
   redis_data:
   upload_data:
+

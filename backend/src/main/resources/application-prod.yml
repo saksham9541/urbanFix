@@ -31,3 +31,4 @@ logging:
     com.urbanfix.backend: INFO
     org.springframework.web: WARN
     org.hibernate: WARN
+

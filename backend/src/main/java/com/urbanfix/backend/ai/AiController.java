@@ -30,7 +30,7 @@ public class AiController {
         return ResponseEntity.ok(Map.of(
                 "status", healthy ? "UP" : "DEGRADED",
                 "aiService", "FastAPI Vision Engine",
-                "endpoint", "http://localhost:8000"
+                "endpoint", aiVisionService.getAiServiceUrl()
         ));
     }
 }

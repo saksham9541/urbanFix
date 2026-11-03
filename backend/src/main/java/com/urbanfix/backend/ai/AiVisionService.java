@@ -58,6 +58,10 @@ public class AiVisionService {
         }
     }
 
+    public String getAiServiceUrl() {
+        return aiServiceUrl;
+    }
+
     private AiAnalysisResponseDto fallbackAnalysis(String categoryHint, String title, String description) {
         AiAnalysisResponseDto dto = new AiAnalysisResponseDto();
         String cat = (categoryHint != null && !categoryHint.isBlank()) ? categoryHint : "ROADS_INFRASTRUCTURE";

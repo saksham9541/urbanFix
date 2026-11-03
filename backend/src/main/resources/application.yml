@@ -32,10 +32,15 @@ spring:
       timeout: 2000ms
 
 urbanfix:
+  ai:
+    service-url: ${AI_SERVICE_URL:http://localhost:8000}
   cors:
     allowed-origins:
       - http://localhost:5173
       - http://127.0.0.1:5173
+      - http://localhost
+      - http://localhost:80
+      - http://127.0.0.1:80
   jwt:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

@@ -219,16 +219,45 @@ The system comes pre-seeded with three demo accounts so you can test all workflo
 
 ## 🚀 Quickstart Guide
 
-### Prerequisites
+You can run UrbanFix AI using either the **single-command Docker deployment** (recommended for production/demos) or the **local developer setup** (for active coding).
+
+---
+
+### Option A: 🐳 Single-Command Docker Deployment (Recommended)
+
+Run the entire platform (PostgreSQL 17, Redis 7, FastAPI Vision Engine, Spring Boot 3.4 Backend, and Nginx React Frontend) in one command:
+
+```powershell
+# 1. Clone the repository
+git clone https://github.com/saksham9541/urbanFix.git
+cd urbanFix
+
+# 2. Launch the complete containerized stack
+docker compose up --build -d
+```
+
+Once running:
+- **Web Application**: [http://localhost](http://localhost) (or [http://localhost:5173](http://localhost:5173))
+- **Spring Boot API**: [http://localhost:8080/api/health](http://localhost:8080/api/health)
+- **FastAPI AI Vision Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+To view live container logs:
+```powershell
+docker compose logs -f
+```
+
+---
+
+### Option B: 💻 Local Developer Setup
+
+#### Prerequisites
 - **Git**
 - **Java 21 LTS**
 - **Node.js 18+ & npm**
 - **Python 3.12+**
 - **Docker Desktop** (for PostgreSQL & Redis)
 
----
-
-### 1. Infrastructure (PostgreSQL & Redis)
+#### 1. Infrastructure (PostgreSQL & Redis)
 Start the PostgreSQL 17 and Redis 7 containers:
 ```powershell
 cd infrastructure

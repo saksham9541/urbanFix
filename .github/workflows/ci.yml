@@ -59,3 +59,11 @@ jobs:
           pip install -r requirements.txt
           python -m pytest tests/
 
+  docker-compose-validate:
+    name: Validate Docker Compose & Multi-Container Spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Compose Syntax
+        run: |
+          docker compose config

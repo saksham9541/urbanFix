@@ -31,3 +31,4 @@ class InferenceResponse(BaseModel):
     confidence: float
     detected_items: List[DetectionItem] = []
     severity: str = "MEDIUM"
+

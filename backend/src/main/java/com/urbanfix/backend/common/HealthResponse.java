@@ -38,3 +38,4 @@ public class HealthResponse {
         this.version = version;
     }
 }
+

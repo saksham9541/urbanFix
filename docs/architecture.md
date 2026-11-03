@@ -60,3 +60,4 @@
 ### 2.4 Infrastructure (Docker Compose)
 - **PostgreSQL 17**: Main persistent relational store with Flyway migration versioning.
 - **Redis 7 (Alpine)**: In-memory caching and real-time publish/subscribe message broker.
+

@@ -10,3 +10,4 @@ public class UrbanFixApplication {
         SpringApplication.run(UrbanFixApplication.class, args);
     }
 }
+

@@ -3,14 +3,17 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
+import AuthModal from './components/AuthModal';
+import { AuthProvider } from './context/AuthContext';
 import { checkBackendHealth } from './services/api';
 
-export default function App() {
+function AppContent() {
   const [backendHealth, setBackendHealth] = useState({
     status: 'CHECKING',
     data: null,
     error: null,
   });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const fetchHealth = async () => {
     const result = await checkBackendHealth();
@@ -28,26 +31,43 @@ export default function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 selection:bg-sky-500 selection:text-white">
-        <Navbar backendHealth={backendHealth} />
-        
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <HomePage
-                  backendHealth={backendHealth}
-                  onRefreshHealth={fetchHealth}
-                />
-              }
-            />
-          </Routes>
-        </main>
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 selection:bg-sky-500 selection:text-white">
+      <Navbar
+        backendHealth={backendHealth}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+      />
+      
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                backendHealth={backendHealth}
+                onRefreshHealth={fetchHealth}
+                onOpenAuth={() => setIsAuthModalOpen(true)}
+              />
+            }
+          />
+        </Routes>
+      </main>
 
-        <Footer />
-      </div>
-    </Router>
+      <Footer />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }

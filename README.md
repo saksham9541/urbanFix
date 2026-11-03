@@ -112,3 +112,4 @@ curl.exe http://localhost:8000/health
 - **Complaints Module**: GPS-tagged issue submission, image upload to S3/Cloud Storage, tracking IDs.
 - **Department & SLA Engine**: Auto-routing tickets to municipal departments and tracking resolution deadlines.
 - **AI Vision Pipeline**: Training and integrating YOLOv8 model for real-time pothole and garbage detection.
+

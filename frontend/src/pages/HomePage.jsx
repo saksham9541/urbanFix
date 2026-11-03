@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Camera, MapPin, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, 
-  Cpu, Database, Server, Clock, Sparkles, Building, Layers
+  Camera, MapPin, CheckCircle2, ArrowRight, RefreshCw, 
+  Cpu, Database, Server, Sparkles, Building, Layers, Shield, User, Briefcase, Lock
 } from 'lucide-react';
 import MapView from '../components/MapView';
-import { checkBackendHealth } from '../services/api';
+import RoleDashboard from '../components/RoleDashboard';
+import { useAuth } from '../context/AuthContext';
 
-export default function HomePage({ backendHealth, onRefreshHealth }) {
+export default function HomePage({ backendHealth, onRefreshHealth, onOpenAuth }) {
+  const { isAuthenticated, user } = useAuth();
   const [aiHealth, setAiHealth] = useState({ status: 'CHECKING', data: null });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,38 +37,52 @@ export default function HomePage({ backendHealth, onRefreshHealth }) {
   };
 
   return (
-    <div className="space-y-16 py-8">
+    <div className="space-y-12 py-8">
+      {/* If authenticated, display the interactive Role Dashboard banner at top */}
+      {isAuthenticated && <RoleDashboard />}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-8 sm:p-12 shadow-2xl border border-indigo-900/50">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(14,165,233,0.15),transparent)] pointer-events-none" />
         
         <div className="max-w-3xl space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-300 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-sky-400 animate-spin" />
-            AI-Driven Smart Civic Issue Resolution
+            <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+            Phase 2: JWT Security & Role-Based Access Control
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Fix your city's problems with{' '}
+            Smart Civic Resolution with{' '}
             <span className="bg-gradient-to-r from-sky-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
-              Smart Vision & AI
+              Role-Based JWT Security
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-slate-300 font-light leading-relaxed">
-            Report road hazards, broken utilities, and sanitation issues in seconds. UrbanFix AI classifies photos, identifies locations, alerts municipal departments, and tracks resolution in real time.
+            Report road hazards, broken utilities, and sanitation issues. UrbanFix AI features full stateless JWT authentication with distinct workflows for Citizens, Field Officers, and Administrators.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-2">
-            <button
-              type="button"
-              onClick={() => alert('Phase 2 Feature: Report Issue with Image Upload & AI Classification')}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-lg shadow-sky-500/25 text-sm"
-            >
-              <Camera className="w-4 h-4" />
-              Report Civic Issue
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
+            {!isAuthenticated ? (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-lg shadow-sky-500/25 text-sm"
+              >
+                <Lock className="w-4 h-4" />
+                Sign In / Switch Roles
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => alert(`Reporting active under authenticated session: ${user?.username}`)}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all text-sm"
+              >
+                <Camera className="w-4 h-4" />
+                Report New Civic Issue
+              </button>
+            )}
 
             <a
               href="#map-preview"
@@ -91,7 +107,7 @@ export default function HomePage({ backendHealth, onRefreshHealth }) {
               {backendHealth.status === 'UP' ? 'Connected (Port 8080)' : 'Offline / Checking'}
             </div>
             <div className="text-[11px] text-slate-400 truncate mt-0.5">
-              Service: {backendHealth.data?.service || 'UrbanFix Backend'} (v{backendHealth.data?.version || '1.0.0'})
+              JWT: Stateless Filters Active
             </div>
           </div>
 
@@ -103,17 +119,17 @@ export default function HomePage({ backendHealth, onRefreshHealth }) {
               <span className={`w-2 h-2 rounded-full ${aiHealth.status === 'UP' ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
             </div>
             <div className="font-semibold text-slate-100 text-sm">
-              {aiHealth.status === 'UP' ? 'Healthy (Port 8000)' : 'Ready for Launch'}
+              {aiHealth.status === 'UP' ? 'Healthy (Port 8000)' : 'Microservice Ready'}
             </div>
             <div className="text-[11px] text-slate-400 truncate mt-0.5">
-              Inference: YOLOv8 Civic Vision Ready
+              Vision: YOLOv8 Civic Vision Ready
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 backdrop-blur-sm">
             <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-indigo-400" /> Storage & Cache
+                <Database className="w-3.5 h-3.5 text-indigo-400" /> Database & RBAC
               </span>
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
             </div>
@@ -121,73 +137,72 @@ export default function HomePage({ backendHealth, onRefreshHealth }) {
               PostgreSQL 17 & Redis 7
             </div>
             <div className="text-[11px] text-slate-400 truncate mt-0.5">
-              Docker Compose: Healthy & Isolated
+              Roles: Citizen, Officer, Admin Seeded
             </div>
           </div>
         </div>
       </section>
 
-      {/* Connectivity & Diagnostic Bar */}
-      <section className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-900">System Integration Status</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
-              Phase 1 Fully Configured
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            Frontend is connected to Spring Boot backend via Axios at <code className="bg-slate-100 px-1 py-0.5 rounded text-sky-700 font-mono">http://localhost:8080/api</code>
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleManualRefresh}
-          disabled={refreshing}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-300"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Testing...' : 'Test Connection Again'}
-        </button>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="space-y-6">
+      {/* 3-Role Showcase Cards */}
+      <section className="space-y-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">How UrbanFix AI Works</h2>
-          <p className="text-sm text-slate-600">Automated end-to-end municipal triage and citizen accountability</p>
+          <h2 className="text-2xl font-bold text-slate-900">Supported System Roles</h2>
+          <p className="text-sm text-slate-600">Each role has cryptographically signed JWT privileges and distinct workflows</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
             <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
-              <Camera className="w-5 h-5" />
+              <User className="w-5 h-5" />
             </div>
-            <h3 className="font-semibold text-slate-900 text-base">1. AI Visual Detection</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Citizens snap an image of a pothole, open garbage, or faulty street fixture. The AI vision model classifies severity and extracts coordinates automatically.
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-base">Citizen Role</h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
+                ROLE_CITIZEN
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Snap photo evidence, report road/waste/utility issues, view GPS map, and receive real-time notifications on issue status.
             </p>
+            <div className="text-[11px] text-slate-500 font-mono bg-slate-50 p-2 rounded-lg">
+              Demo: <span className="font-semibold text-slate-800">citizen@urbanfix.com</span> / <span className="font-semibold text-slate-800">Citizen@123</span>
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
             <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
-              <Building className="w-5 h-5" />
+              <Briefcase className="w-5 h-5" />
             </div>
-            <h3 className="font-semibold text-slate-900 text-base">2. Automated Routing</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Tickets are routed directly to the designated department (Roads, Sanitation, Electricity) with SLA deadlines and automatic officer notifications.
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-base">Field Officer Role</h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                ROLE_OFFICER
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Assigned department tickets based on municipal jurisdiction. Inspect complaints, upload resolution proof photos, and meet SLA timers.
             </p>
+            <div className="text-[11px] text-slate-500 font-mono bg-slate-50 p-2 rounded-lg">
+              Demo: <span className="font-semibold text-slate-800">officer@urbanfix.com</span> / <span className="font-semibold text-slate-800">Officer@123</span>
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+              <Shield className="w-5 h-5" />
             </div>
-            <h3 className="font-semibold text-slate-900 text-base">3. Transparent Resolution</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Field officers submit post-resolution proof photos. Citizens receive real-time notifications and can confirm closure or request escalation.
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-900 text-base">Administrator Role</h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                ROLE_ADMIN
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Full administrative authority. Manage municipal departments, assign officers, view city-wide geospatial heatmaps, and export resolution metrics.
             </p>
+            <div className="text-[11px] text-slate-500 font-mono bg-slate-50 p-2 rounded-lg">
+              Demo: <span className="font-semibold text-slate-800">admin@urbanfix.com</span> / <span className="font-semibold text-slate-800">Admin@123</span>
+            </div>
           </div>
         </div>
       </section>
@@ -199,15 +214,6 @@ export default function HomePage({ backendHealth, onRefreshHealth }) {
           <p className="text-sm text-slate-600">OpenStreetMap powered view of municipal complaints and cluster density</p>
         </div>
         <MapView />
-      </section>
-
-      {/* Placeholder sections for Phase 2 navigation */}
-      <section id="departments" className="bg-slate-100 rounded-2xl p-8 border border-slate-200 text-center space-y-3">
-        <Layers className="w-8 h-8 text-slate-400 mx-auto" />
-        <h3 className="text-lg font-bold text-slate-800">Municipal Departments & SLA Workflows</h3>
-        <p className="text-sm text-slate-600 max-w-xl mx-auto">
-          Roads & Infrastructure, Public Health & Sanitation, Electricity & Streetlights, Water Board, and Parks & Recreation modules configured for Phase 2.
-        </p>
       </section>
     </div>
   );

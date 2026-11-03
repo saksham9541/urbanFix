@@ -14,3 +14,4 @@ public class HealthController {
         return ResponseEntity.ok(new HealthResponse("UP", "UrbanFix Backend", "1.0.0"));
     }
 }
+

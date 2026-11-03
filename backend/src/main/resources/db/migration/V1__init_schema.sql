@@ -66,3 +66,4 @@ INSERT INTO roles (name, description) VALUES
     ('ROLE_OFFICER', 'Department field officer resolving complaints'),
     ('ROLE_ADMIN', 'System administrator with full access')
 ON CONFLICT (name) DO NOTHING;
+

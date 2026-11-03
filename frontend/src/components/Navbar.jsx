@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User } from 'lucide-react';
+import { ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, Building2, User, LogIn, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export default function Navbar({ backendHealth }) {
+export default function Navbar({ backendHealth, onOpenAuth }) {
+  const { user, isAuthenticated, roles, logout } = useAuth();
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
@@ -17,7 +20,7 @@ export default function Navbar({ backendHealth }) {
                 UrbanFix AI
               </span>
               <span className="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
-                Phase 1 MVP
+                Phase 2 JWT & RBAC
               </span>
             </div>
           </Link>
@@ -46,9 +49,9 @@ export default function Navbar({ backendHealth }) {
           </nav>
 
           {/* Backend Status & Auth CTA */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Status indicator badge */}
-            <div className={`flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+            <div className={`hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               backendHealth.status === 'UP'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                 : backendHealth.status === 'CHECKING'
@@ -68,14 +71,37 @@ export default function Navbar({ backendHealth }) {
               </span>
             </div>
 
-            <button
-              type="button"
-              className="inline-flex items-center space-x-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all"
-              onClick={() => alert('Phase 2 Feature: JWT Authentication & User Login')}
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Citizen Login</span>
-            </button>
+            {/* Auth Button / User Badge */}
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200 text-xs">
+                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
+                    {user?.firstName?.[0] || user?.username?.[0] || 'U'}
+                  </div>
+                  <span className="font-semibold text-slate-800">{user?.username}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-bold">
+                    {roles[0]?.replace('ROLE_', '')}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="Sign Out"
+                  className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-200"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="inline-flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition-all"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign In / Demo</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

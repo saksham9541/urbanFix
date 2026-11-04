@@ -40,3 +40,4 @@ class WebSocketControllerTest {
                 .andExpect(jsonPath("$.broadcastMessage").value("Real-Time Socket Test"));
     }
 }
+

@@ -46,3 +46,4 @@ public class WebSocketController {
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "broadcastMessage", message));
     }
 }
+

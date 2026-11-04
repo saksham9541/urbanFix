@@ -78,3 +78,4 @@ public class WebSocketEventPublisher {
         messagingTemplate.convertAndSend("/topic/system", payload);
     }
 }
+

@@ -328,3 +328,4 @@ export default function LandingPage({ onOpenReport, onOpenTrack }) {
     </div>
   );
 }
+

@@ -2,13 +2,15 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   ShieldCheck, Activity, MapPin, AlertCircle, BarChart3, 
-  Building2, User, LogIn, LogOut, PlusCircle, LayoutDashboard, Home
+  Building2, User, LogIn, LogOut, PlusCircle, LayoutDashboard, Home, Radio, Zap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpenTrack }) {
   const { user, isAuthenticated, roles, logout } = useAuth();
+  const { socketStatus } = useWebSocket();
   const location = useLocation();
 
   const isCurrent = (path) => location.pathname === path;
@@ -65,8 +67,8 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpen
 
           {/* Backend Status & Auth CTA */}
           <div className="flex items-center space-x-3">
-            {/* Status indicator badge */}
-            <div className={`hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+            {/* Backend Status indicator badge */}
+            <div className={`hidden lg:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               backendHealth.status === 'UP'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                 : backendHealth.status === 'CHECKING'
@@ -82,7 +84,28 @@ export default function Navbar({ backendHealth, onOpenAuth, onOpenReport, onOpen
               }`} />
               <Activity className="w-3.5 h-3.5" />
               <span>
-                Backend: {backendHealth.status === 'UP' ? 'Online' : backendHealth.status === 'CHECKING' ? 'Checking...' : 'Offline'}
+                API: {backendHealth.status === 'UP' ? 'Online' : backendHealth.status === 'CHECKING' ? 'Checking...' : 'Offline'}
+              </span>
+            </div>
+
+            {/* Real-Time WebSocket status indicator */}
+            <div className={`hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+              socketStatus === 'CONNECTED'
+                ? 'bg-sky-50 text-sky-700 border-sky-200'
+                : socketStatus === 'CONNECTING'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                socketStatus === 'CONNECTED'
+                  ? 'bg-sky-500 animate-ping'
+                  : socketStatus === 'CONNECTING'
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-slate-400'
+              }`} />
+              <Zap className="w-3 h-3 text-sky-500" />
+              <span>
+                Socket: {socketStatus === 'CONNECTED' ? 'Live' : socketStatus === 'CONNECTING' ? 'Connecting' : 'Offline'}
               </span>
             </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import { getAllComplaints } from '../services/api';
+import { useWebSocket } from '../context/WebSocketContext';
 import { RefreshCw, ExternalLink, Flame } from 'lucide-react';
 
 const createIcon = (status) => {
@@ -21,6 +22,7 @@ const createIcon = (status) => {
 };
 
 export default function MapView({ onTrackComplaint, refreshTrigger }) {
+  const { lastComplaintEvent } = useWebSocket();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(true);
@@ -41,6 +43,22 @@ export default function MapView({ onTrackComplaint, refreshTrigger }) {
   useEffect(() => {
     fetchComplaints();
   }, [refreshTrigger]);
+
+  // Synchronize live WebSocket complaint events onto GIS Map
+  useEffect(() => {
+    if (!lastComplaintEvent || !lastComplaintEvent.data) return;
+
+    if (lastComplaintEvent.type === 'COMPLAINT_CREATED') {
+      setComplaints((prev) => {
+        if (prev.some((c) => c.id === lastComplaintEvent.data.id)) return prev;
+        return [lastComplaintEvent.data, ...prev];
+      });
+    } else if (lastComplaintEvent.type === 'COMPLAINT_UPDATED') {
+      setComplaints((prev) =>
+        prev.map((c) => (c.id === lastComplaintEvent.data.id ? lastComplaintEvent.data : c))
+      );
+    }
+  }, [lastComplaintEvent]);
 
   return (
     <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-lg bg-white">

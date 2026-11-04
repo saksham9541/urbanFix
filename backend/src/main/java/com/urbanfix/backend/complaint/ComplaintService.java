@@ -35,6 +35,9 @@ public class ComplaintService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired(required = false)
+    private com.urbanfix.backend.websocket.WebSocketEventPublisher wsPublisher;
+
     private static final Random RANDOM = new Random();
 
     private synchronized String generateUniqueTrackingNumber() {
@@ -122,7 +125,12 @@ public class ComplaintService {
             );
         }
 
-        return ComplaintResponse.fromEntity(saved);
+        ComplaintResponse response = ComplaintResponse.fromEntity(saved);
+        if (wsPublisher != null) {
+            wsPublisher.publishComplaintCreated(response);
+        }
+
+        return response;
     }
 
     public ComplaintResponse getByTrackingNumber(String trackingNumber) {
@@ -204,7 +212,12 @@ public class ComplaintService {
 
         complaint.setUpdatedAt(Instant.now());
         Complaint saved = complaintRepository.save(complaint);
-        return ComplaintResponse.fromEntity(saved);
+        ComplaintResponse response = ComplaintResponse.fromEntity(saved);
+        if (wsPublisher != null) {
+            wsPublisher.publishComplaintUpdated(response, "ASSIGNED");
+        }
+
+        return response;
     }
 
     @Transactional
@@ -245,7 +258,12 @@ public class ComplaintService {
         }
 
         Complaint saved = complaintRepository.save(complaint);
-        return ComplaintResponse.fromEntity(saved);
+        ComplaintResponse response = ComplaintResponse.fromEntity(saved);
+        if (wsPublisher != null) {
+            wsPublisher.publishComplaintUpdated(response, "ASSIGNED");
+        }
+
+        return response;
     }
 
     @Transactional
@@ -271,7 +289,12 @@ public class ComplaintService {
             );
         }
 
-        return ComplaintResponse.fromEntity(saved);
+        ComplaintResponse response = ComplaintResponse.fromEntity(saved);
+        if (wsPublisher != null) {
+            wsPublisher.publishComplaintUpdated(response, "ASSIGNED");
+        }
+
+        return response;
     }
 
     @Transactional
@@ -298,7 +321,12 @@ public class ComplaintService {
             );
         }
 
-        return ComplaintResponse.fromEntity(saved);
+        ComplaintResponse response = ComplaintResponse.fromEntity(saved);
+        if (wsPublisher != null) {
+            wsPublisher.publishComplaintUpdated(response, "ASSIGNED");
+        }
+
+        return response;
     }
 
     public Map<String, Object> getSlaAnalytics() {

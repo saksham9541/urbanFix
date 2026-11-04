@@ -9,6 +9,7 @@ import AuthModal from './components/AuthModal';
 import ReportIssueModal from './components/ReportIssueModal';
 import TrackIssueModal from './components/TrackIssueModal';
 import { AuthProvider } from './context/AuthContext';
+import { WebSocketProvider } from './context/WebSocketContext';
 import { checkBackendHealth } from './services/api';
 
 function AppContent() {
@@ -121,9 +122,11 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <WebSocketProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </WebSocketProvider>
     </AuthProvider>
   );
 }

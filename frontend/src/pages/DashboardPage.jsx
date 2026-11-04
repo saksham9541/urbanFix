@@ -8,10 +8,12 @@ import MapView from '../components/MapView';
 import RoleDashboard from '../components/RoleDashboard';
 import DepartmentsSection from '../components/DepartmentsSection';
 import { useAuth } from '../context/AuthContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { getAllComplaints, updateComplaintStatus } from '../services/api';
 
 export default function DashboardPage({ backendHealth, onRefreshHealth, onOpenReport, onOpenTrack }) {
   const { isAuthenticated, user, isOfficer, isAdmin } = useAuth();
+  const { lastComplaintEvent, socketStatus } = useWebSocket();
   const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
   const [loadingComplaints, setLoadingComplaints] = useState(false);
@@ -37,6 +39,22 @@ export default function DashboardPage({ backendHealth, onRefreshHealth, onOpenRe
   useEffect(() => {
     fetchComplaints();
   }, []);
+
+  // Real-Time WebSocket live complaints synchronization
+  useEffect(() => {
+    if (!lastComplaintEvent || !lastComplaintEvent.data) return;
+
+    if (lastComplaintEvent.type === 'COMPLAINT_CREATED') {
+      setComplaints((prev) => {
+        if (prev.some((c) => c.id === lastComplaintEvent.data.id)) return prev;
+        return [lastComplaintEvent.data, ...prev];
+      });
+    } else if (lastComplaintEvent.type === 'COMPLAINT_UPDATED') {
+      setComplaints((prev) =>
+        prev.map((c) => (c.id === lastComplaintEvent.data.id ? lastComplaintEvent.data : c))
+      );
+    }
+  }, [lastComplaintEvent]);
 
   const handleQuickTrackSubmit = (e) => {
     e.preventDefault();
@@ -297,3 +315,4 @@ export default function DashboardPage({ backendHealth, onRefreshHealth, onOpenRe
     </div>
   );
 }
+

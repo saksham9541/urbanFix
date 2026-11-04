@@ -2,13 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCheck, Star, AlertTriangle, CheckCircle2, Clock, X, ExternalLink } from 'lucide-react';
 import { getMyNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useWebSocket } from '../context/WebSocketContext';
 
 export default function NotificationBell({ onTrackComplaint }) {
   const { isAuthenticated, user } = useAuth();
+  const { latestNotification } = useWebSocket();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Real-Time notification received via WebSocket
+  useEffect(() => {
+    if (latestNotification && latestNotification.data) {
+      const newNotif = latestNotification.data;
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === newNotif.id)) return prev;
+        return [newNotif, ...prev];
+      });
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, [latestNotification]);
 
   useEffect(() => {
     if (isAuthenticated) {

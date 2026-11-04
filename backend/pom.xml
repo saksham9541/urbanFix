@@ -89,6 +89,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Spring Boot WebSocket & STOMP Messaging -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- H2 Database (for local dev fallback & testing) -->
         <dependency>
             <groupId>com.h2database</groupId>

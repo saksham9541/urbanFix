@@ -2,6 +2,7 @@ package com.urbanfix.backend.notification;
 
 import com.urbanfix.backend.complaint.Complaint;
 import com.urbanfix.backend.user.User;
+import com.urbanfix.backend.websocket.WebSocketEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +16,21 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired(required = false)
+    private WebSocketEventPublisher wsPublisher;
+
     @Transactional
     public Notification createNotification(User user, Complaint complaint, String title, String message, String type) {
         if (user == null) return null;
         Notification notification = new Notification(user, complaint, title, message, type);
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+
+        // Push real-time alert via WebSocket to the user's private topic
+        if (wsPublisher != null && user.getId() != null) {
+            wsPublisher.publishNotification(user.getId(), NotificationResponse.fromEntity(saved));
+        }
+
+        return saved;
     }
 
     public List<NotificationResponse> getUserNotifications(Long userId) {

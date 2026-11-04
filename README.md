@@ -79,6 +79,12 @@
 - **5-Star Citizen Rating Engine**: Citizens score repair quality with optional feedback upon completion.
 - **Dispute / Reopen Workflow**: Citizens can challenge unsatisfactory resolutions with reason audits, re-routing tickets back to active repair.
 
+### 6. ⚡ Real-Time WebSockets & STOMP Live Synchronization
+- **Spring WebSocket & STOMP Broker**: Dual endpoints at `/ws` (SockJS fallback) and `/ws-raw` (Standard STOMP).
+- **Instant Map & Feed Synchronization**: Broadcasts over `/topic/complaints` push new incident pins and status changes to all connected citizen, officer, and admin dashboards in real time.
+- **User Notification Stream**: Dedicated pushes to `/topic/notifications/{userId}` deliver instant alert toasts and badge increments.
+- **Client-Side Live Status Indicator**: Real-time `⚡ Socket: Live` status monitoring in the navigation bar.
+
 ---
 
 ## 🛠️ Architecture & Tech Stack

@@ -4,14 +4,26 @@ import {
   ShieldCheck, Camera, Sparkles, MapPin, Clock, Star, 
   ArrowRight, CheckCircle2, ChevronRight, Activity, Building2, 
   Zap, Wrench, Droplets, Trash2, Trees, Search, Users, ShieldAlert,
-  BarChart3, Flame
+  BarChart3, Flame, UserPlus, KeyRound, Lock, Briefcase, Building, User
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import RegisterModal from '../components/RegisterModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 export default function LandingPage({ onOpenReport, onOpenTrack }) {
   const { isAuthenticated, user, roles } = useAuth();
   const navigate = useNavigate();
   const [quickTrackNumber, setQuickTrackNumber] = useState('');
+
+  // Modals for Registration and Forgot/Reset Password
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [targetForgotRole, setTargetForgotRole] = useState('ALL');
+
+  const openForgotForRole = (role) => {
+    setTargetForgotRole(role);
+    setShowForgotModal(true);
+  };
 
   const handleQuickTrack = (e) => {
     e.preventDefault();
@@ -53,43 +65,53 @@ export default function LandingPage({ onOpenReport, onOpenTrack }) {
           </p>
 
           {/* Call to Actions */}
-          <div className="flex flex-wrap items-center gap-4 pt-4">
+          <div className="flex flex-wrap items-center gap-3 pt-4">
             {isAuthenticated ? (
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-xl shadow-sky-500/25 text-base"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-xl shadow-sky-500/25 text-sm sm:text-base"
               >
                 Go to Operations Portal
                 <ArrowRight className="w-5 h-5 ml-1" />
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => navigate('/auth')}
-                className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-xl shadow-sky-500/25 text-base"
-              >
-                Sign In / Enter Portal
-                <ArrowRight className="w-5 h-5 ml-1" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterModal(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-all transform hover:-translate-y-0.5 shadow-xl shadow-sky-500/25 text-sm sm:text-base"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Register New User
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/auth')}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all text-sm backdrop-blur-md"
+                >
+                  Sign In / Demo
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openForgotForRole('ALL')}
+                  className="inline-flex items-center gap-2 px-4 py-3.5 rounded-2xl font-semibold text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 border border-amber-400/30 transition-all text-xs sm:text-sm backdrop-blur-md"
+                >
+                  <KeyRound className="w-4 h-4 text-amber-400" />
+                  Forgot / Reset Password
+                </button>
+              </>
             )}
 
             <button
               type="button"
               onClick={onOpenReport}
-              className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/20 transition-all text-base backdrop-blur-md"
+              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/20 transition-all text-sm backdrop-blur-md"
             >
-              <Camera className="w-5 h-5 text-sky-400" />
+              <Camera className="w-4 h-4 text-sky-400" />
               Report Issue Now
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onOpenTrack('UF-2026-10001')}
-              className="inline-flex items-center gap-2 px-5 py-4 rounded-2xl font-semibold text-slate-300 hover:text-white transition-all text-sm"
-            >
-              <Search className="w-4 h-4 text-slate-400" />
-              Track Sample Issue
             </button>
           </div>
 
@@ -289,7 +311,129 @@ export default function LandingPage({ onOpenReport, onOpenTrack }) {
         </div>
       </section>
 
-      {/* 5. Bottom Call-To-Action Banner */}
+      {/* 5. Citizen, Officer & Admin Gateway (Registration & Password Recovery Hub) */}
+      <section className="p-8 sm:p-12 rounded-3xl bg-slate-900 text-white border border-slate-800 space-y-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-2xl space-y-2 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs font-semibold">
+            <KeyRound className="w-3.5 h-3.5" />
+            Security & Onboarding Center
+          </div>
+          <h2 className="text-3xl font-black tracking-tight text-white">
+            Role-Based Access for Everyone
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Create a new account with your own custom User ID & password, or recover credentials with our 15-minute verification system.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+          {/* 1. Citizen Portal Card */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-500/50 transition-all flex flex-col justify-between space-y-5">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/20 flex items-center justify-center font-bold">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Citizen / Resident</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Report civic problems, trigger AI vision scans, track SLA milestones, and rate completed road/sanitation repairs.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(true)}
+                className="w-full py-2.5 px-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <UserPlus className="w-4 h-4" />
+                Register as Citizen
+              </button>
+              <button
+                type="button"
+                onClick={() => openForgotForRole('ROLE_CITIZEN')}
+                className="w-full py-2 px-4 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-medium rounded-xl text-xs transition-all border border-white/10 flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                Forgot Citizen Password?
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Field Officer Portal Card */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/50 transition-all flex flex-col justify-between space-y-5">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/20 flex items-center justify-center font-bold">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">Field Officer</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Inspect assigned municipal complaints, follow SLA countdown timers, and upload resolution proof with before/after photos.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(true)}
+                className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <UserPlus className="w-4 h-4" />
+                Register as Field Officer
+              </button>
+              <button
+                type="button"
+                onClick={() => openForgotForRole('ROLE_OFFICER')}
+                className="w-full py-2 px-4 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-medium rounded-xl text-xs transition-all border border-white/10 flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                Forgot Officer Password?
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Municipal Admin Portal Card */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/50 transition-all flex flex-col justify-between space-y-5">
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/20 flex items-center justify-center font-bold">
+                <Building className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">City Administrator</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Geospatial citywide heatmap, manual crew dispatch, SLA breach escalations, and citizen satisfaction governance.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowRegisterModal(true)}
+                className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <UserPlus className="w-4 h-4" />
+                Register as Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => openForgotForRole('ROLE_ADMIN')}
+                className="w-full py-2 px-4 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-medium rounded-xl text-xs transition-all border border-white/10 flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                Forgot Admin Password?
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Bottom Call-To-Action Banner */}
       <section className="rounded-3xl bg-gradient-to-r from-sky-600 to-indigo-700 text-white p-10 sm:p-14 text-center space-y-6 shadow-xl">
         <div className="max-w-2xl mx-auto space-y-3">
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
@@ -309,12 +453,21 @@ export default function LandingPage({ onOpenReport, onOpenTrack }) {
               Open Operations Portal
             </button>
           ) : (
-            <button
-              onClick={() => navigate('/auth')}
-              className="px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-2xl shadow-lg transition-all text-base"
-            >
-              Sign In with 1-Click Demo Roles
-            </button>
+            <>
+              <button
+                onClick={() => setShowRegisterModal(true)}
+                className="px-8 py-4 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-lg transition-all text-base flex items-center gap-2"
+              >
+                <UserPlus className="w-5 h-5 text-sky-400" />
+                Create New Account
+              </button>
+              <button
+                onClick={() => navigate('/auth')}
+                className="px-8 py-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-2xl shadow-lg transition-all text-base"
+              >
+                Sign In with 1-Click Demo Roles
+              </button>
+            </>
           )}
 
           <button
@@ -325,6 +478,25 @@ export default function LandingPage({ onOpenReport, onOpenTrack }) {
           </button>
         </div>
       </section>
+
+      {/* Popups & Modals */}
+      <RegisterModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onRegisterSuccess={(newUser) => {
+          setShowRegisterModal(false);
+          navigate('/dashboard');
+        }}
+      />
+
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        defaultRole={targetForgotRole}
+        onLoginSuccess={() => {
+          navigate('/dashboard');
+        }}
+      />
     </div>
   );
 }

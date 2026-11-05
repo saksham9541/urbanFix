@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginApi, registerApi, getCurrentUserApi } from '../services/api';
+import { loginApi, registerApi, getCurrentUserApi, forgotPasswordApi, resetPasswordApi } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -85,6 +85,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const forgotPassword = async (usernameOrEmail, role) => {
+    setLoading(true);
+    try {
+      const data = await forgotPasswordApi(usernameOrEmail, role);
+      return { success: true, data };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message || 'Failed to process password reset request',
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (usernameOrEmail, resetCode, newPassword) => {
+    setLoading(true);
+    try {
+      const data = await resetPasswordApi(usernameOrEmail, resetCode, newPassword);
+      return { success: true, data };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message || 'Failed to reset password',
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -110,6 +140,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
+        forgotPassword,
+        resetPassword,
         logout,
       }}
     >

@@ -73,6 +73,16 @@ export const getCurrentUserApi = async () => {
   return response.data;
 };
 
+export const forgotPasswordApi = async (usernameOrEmail, role) => {
+  const response = await apiClient.post('/auth/forgot-password', { usernameOrEmail, role });
+  return response.data;
+};
+
+export const resetPasswordApi = async (usernameOrEmail, resetCode, newPassword) => {
+  const response = await apiClient.post('/auth/reset-password', { usernameOrEmail, resetCode, newPassword });
+  return response.data;
+};
+
 // Role-protected dashboard APIs
 export const getCitizenDashboard = async () => {
   const response = await apiClient.get('/citizen/dashboard');

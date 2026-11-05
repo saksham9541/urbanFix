@@ -24,6 +24,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -164,6 +166,118 @@ public class AuthController {
                 "lastName", userDetails.getLastName() != null ? userDetails.getLastName() : "",
                 "roles", roles
         ));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        String query = request.getUsernameOrEmail().trim();
+        Optional<User> userOpt = userRepository.findByUsernameOrEmail(query, query);
+
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByUsername(query);
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByEmail(query);
+            }
+        }
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "No account found matching User ID or Email: " + query));
+        }
+
+        User user = userOpt.get();
+
+        if (request.getRole() != null && !request.getRole().isBlank()) {
+            String roleUpper = request.getRole().trim().toUpperCase();
+            if (!roleUpper.startsWith("ROLE_")) {
+                roleUpper = "ROLE_" + roleUpper;
+            }
+            final String targetRole = roleUpper;
+            boolean hasRole = user.getRoles().stream()
+                    .anyMatch(r -> r.getName().equalsIgnoreCase(targetRole));
+            if (!hasRole) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "User exists but is not registered under the " + targetRole.replace("ROLE_", "") + " role."));
+            }
+        }
+
+        String resetCode = String.format("%06d", new Random().nextInt(900000) + 100000);
+        user.setResetToken(resetCode);
+        user.setResetTokenExpiry(Instant.now().plusSeconds(900)); // 15 mins
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+
+        String maskedEmail = maskEmail(user.getEmail());
+        String primaryRole = user.getRoles().stream().findFirst().map(Role::getName).orElse("ROLE_CITIZEN");
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Verification reset code generated successfully for " + user.getUsername(),
+                "username", user.getUsername(),
+                "maskedEmail", maskedEmail,
+                "resetCode", resetCode,
+                "role", primaryRole,
+                "expiresInMinutes", 15
+        ));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        String query = request.getUsernameOrEmail().trim();
+        Optional<User> userOpt = userRepository.findByUsernameOrEmail(query, query);
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByUsername(query);
+            if (userOpt.isEmpty()) {
+                userOpt = userRepository.findByEmail(query);
+            }
+        }
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "User account not found for: " + query));
+        }
+
+        User user = userOpt.get();
+
+        if (user.getResetToken() == null || user.getResetTokenExpiry() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "No active password reset request found. Please request a verification code first."));
+        }
+
+        if (Instant.now().isAfter(user.getResetTokenExpiry())) {
+            user.setResetToken(null);
+            user.setResetTokenExpiry(null);
+            userRepository.save(user);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Verification code has expired. Please request a new one."));
+        }
+
+        if (!user.getResetToken().equals(request.getResetCode().trim())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Invalid verification code. Please check and try again."));
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword().trim()));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        user.setUpdatedAt(Instant.now());
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Password has been successfully updated! You can now log in with your new password.",
+                "username", user.getUsername()
+        ));
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "u***@urbanfix.org";
+        String[] parts = email.split("@");
+        String name = parts[0];
+        String domain = parts[1];
+        if (name.length() <= 2) {
+            return name.charAt(0) + "***@" + domain;
+        }
+        return name.charAt(0) + "***" + name.charAt(name.length() - 1) + "@" + domain;
     }
 }
 

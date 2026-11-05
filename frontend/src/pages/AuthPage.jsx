@@ -7,10 +7,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthPage() {
-  const { login, register, isAuthenticated, user, roles, logout } = useAuth();
+  const { login, register, forgotPassword, resetPassword, isAuthenticated, user, roles, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('login'); // 'login' or 'register'
+  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register' | 'forgot'
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -24,9 +24,19 @@ export default function AuthPage() {
   const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regFirstName, setRegFirstName] = useState('');
   const [regLastName, setRegLastName] = useState('');
   const [regRole, setRegRole] = useState('ROLE_CITIZEN');
+
+  // Forgot password form state
+  const [forgotRole, setForgotRole] = useState('ROLE_CITIZEN');
+  const [forgotUserOrEmail, setForgotUserOrEmail] = useState('');
+  const [forgotStep, setForgotStep] = useState('request'); // 'request' | 'reset'
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [codeGeneratedInfo, setCodeGeneratedInfo] = useState(null);
 
   // 1-Click Demo Fillers
   const fillDemoCredentials = (roleType) => {
@@ -71,23 +81,78 @@ export default function AuthPage() {
     setLoading(true);
 
     const result = await register({
-      username: regUsername,
-      email: regEmail,
-      password: regPassword,
-      firstName: regFirstName,
-      lastName: regLastName,
-      roles: [regRole],
+      username: regUsername.trim(),
+      email: regEmail.trim(),
+      password: regPassword.trim(),
+      firstName: regFirstName.trim(),
+      lastName: regLastName.trim(),
+      role: regRole.replace('ROLE_', ''),
     });
 
     setLoading(false);
 
     if (result.success) {
-      setSuccessMessage('Account registered successfully! Please sign in.');
-      setActiveTab('login');
-      setLoginEmail(regEmail);
-      setLoginPassword(regPassword);
+      setSuccessMessage('Account registered successfully! Entering portal...');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 700);
     } else {
       setErrorMessage(result.error || 'Registration failed. Check details and try again.');
+    }
+  };
+
+  const handleForgotRequestCode = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    setLoading(true);
+
+    const res = await forgotPassword(forgotUserOrEmail.trim(), forgotRole);
+    setLoading(false);
+
+    if (res.success) {
+      setCodeGeneratedInfo(res.data);
+      setResetCode(res.data.resetCode || '');
+      setForgotStep('reset');
+      setSuccessMessage('Reset code generated! Please enter your new password.');
+    } else {
+      setErrorMessage(res.error || 'Account not found. Please verify details.');
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (newPassword.length < 6) {
+      setErrorMessage('New password must be at least 6 characters.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    const res = await resetPassword(
+      forgotUserOrEmail.trim(),
+      resetCode.trim(),
+      newPassword.trim()
+    );
+    setLoading(false);
+
+    if (res.success) {
+      setSuccessMessage('Password successfully updated! You can now log in.');
+      setActiveTab('login');
+      setLoginEmail(codeGeneratedInfo?.username || forgotUserOrEmail);
+      setLoginPassword(newPassword);
+      setForgotStep('request');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } else {
+      setErrorMessage(res.error || 'Failed to reset password. Check verification code.');
     }
   };
 
@@ -235,12 +300,12 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              {/* Tab Selector: Sign In vs Register */}
+              {/* Tab Selector: Sign In vs Register vs Forgot Password */}
               <div className="flex border-b border-slate-200">
                 <button
                   type="button"
-                  onClick={() => { setActiveTab('login'); setErrorMessage(''); }}
-                  className={`flex-1 pb-3 text-sm font-bold border-b-2 transition-all ${
+                  onClick={() => { setActiveTab('login'); setErrorMessage(''); setSuccessMessage(''); }}
+                  className={`flex-1 pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all ${
                     activeTab === 'login'
                       ? 'border-sky-600 text-sky-600'
                       : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -250,14 +315,25 @@ export default function AuthPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setActiveTab('register'); setErrorMessage(''); }}
-                  className={`flex-1 pb-3 text-sm font-bold border-b-2 transition-all ${
+                  onClick={() => { setActiveTab('register'); setErrorMessage(''); setSuccessMessage(''); }}
+                  className={`flex-1 pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all ${
                     activeTab === 'register'
                       ? 'border-sky-600 text-sky-600'
                       : 'border-transparent text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   Create Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('forgot'); setErrorMessage(''); setSuccessMessage(''); }}
+                  className={`flex-1 pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all ${
+                    activeTab === 'forgot'
+                      ? 'border-amber-500 text-amber-600'
+                      : 'border-transparent text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  Forgot Password
                 </button>
               </div>
 
@@ -295,7 +371,16 @@ export default function AuthPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Password</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-700">Password</label>
+                      <button
+                        type="button"
+                        onClick={() => { setActiveTab('forgot'); setErrorMessage(''); setSuccessMessage(''); }}
+                        className="text-[11px] font-semibold text-sky-600 hover:text-sky-700 hover:underline"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
@@ -331,7 +416,7 @@ export default function AuthPage() {
                     )}
                   </button>
                 </form>
-              ) : (
+              ) : activeTab === 'register' ? (
                 /* Form: Registration */
                 <form onSubmit={handleRegisterSubmit} className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -416,6 +501,152 @@ export default function AuthPage() {
                     {loading ? 'Creating Account...' : 'Complete Registration'}
                   </button>
                 </form>
+              ) : (
+                /* Form: Forgot / Reset Password */
+                <div className="space-y-4">
+                  {/* Step 1: Request code */}
+                  {forgotStep === 'request' ? (
+                    <form onSubmit={handleForgotRequestCode} className="space-y-3.5">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700">Account Persona / Role</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setForgotRole('ROLE_CITIZEN')}
+                            className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1 ${
+                              forgotRole === 'ROLE_CITIZEN'
+                                ? 'bg-sky-50 border-sky-500 text-sky-800'
+                                : 'bg-white border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <User className="w-3.5 h-3.5 text-sky-600" />
+                            <span>Citizen</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setForgotRole('ROLE_OFFICER')}
+                            className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1 ${
+                              forgotRole === 'ROLE_OFFICER'
+                                ? 'bg-amber-50 border-amber-500 text-amber-800'
+                                : 'bg-white border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <Briefcase className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Officer</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setForgotRole('ROLE_ADMIN')}
+                            className={`p-2.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1 ${
+                              forgotRole === 'ROLE_ADMIN'
+                                ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                                : 'bg-white border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <Building className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Admin</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700">User ID (Username) or Email</label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. citizen, officer, or admin@urbanfix.com"
+                            value={forgotUserOrEmail}
+                            onChange={(e) => setForgotUserOrEmail(e.target.value)}
+                            className="w-full pl-10 pr-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {loading ? 'Generating Code...' : 'Send Verification Code'}
+                      </button>
+                    </form>
+                  ) : (
+                    /* Step 2: Enter code & new password */
+                    <form onSubmit={handleResetPasswordSubmit} className="space-y-3.5">
+                      {codeGeneratedInfo && (
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+                          <div className="flex items-center justify-between font-bold">
+                            <span>Verification Code:</span>
+                            <span className="font-mono text-sm tracking-widest px-2 py-0.5 rounded bg-amber-200 text-amber-950">
+                              {codeGeneratedInfo.resetCode}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-800">
+                            Sent to {codeGeneratedInfo.maskedEmail} for User ID <code>{codeGeneratedInfo.username}</code>.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700">6-Digit Verification Code</label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          placeholder="123456"
+                          value={resetCode}
+                          onChange={(e) => setResetCode(e.target.value)}
+                          className="w-full px-3 py-2 text-center font-mono font-bold tracking-widest text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 bg-slate-50"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700">New Password</label>
+                        <input
+                          type="password"
+                          required
+                          placeholder="Min 6 characters"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700">Confirm New Password</label>
+                        <input
+                          type="password"
+                          required
+                          placeholder="Repeat new password"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setForgotStep('request')}
+                          className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {loading ? 'Updating Password...' : 'Save & Update Password'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               )}
             </>
           )}

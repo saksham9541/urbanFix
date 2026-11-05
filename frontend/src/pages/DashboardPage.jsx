@@ -9,7 +9,7 @@ import RoleDashboard from '../components/RoleDashboard';
 import DepartmentsSection from '../components/DepartmentsSection';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../context/WebSocketContext';
-import { getAllComplaints, updateComplaintStatus } from '../services/api';
+import { getAllComplaints, updateComplaintStatus, getFullImageUrl } from '../services/api';
 
 export default function DashboardPage({ backendHealth, onRefreshHealth, onOpenReport, onOpenTrack }) {
   const { isAuthenticated, user, isOfficer, isAdmin } = useAuth();
@@ -243,6 +243,18 @@ export default function DashboardPage({ backendHealth, onRefreshHealth, onOpenRe
                   <h3 className="font-bold text-slate-900 text-base leading-snug line-clamp-1">{c.title}</h3>
                   <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{c.description}</p>
                 </div>
+
+                {/* Uploaded Photo Evidence Thumbnail */}
+                {c.imageUrl && (
+                  <div className="h-32 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group">
+                    <img 
+                      src={getFullImageUrl(c.imageUrl)} 
+                      alt={c.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                      onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+                    />
+                  </div>
+                )}
 
                 {/* AI Confidence Badge */}
                 {c.aiDetectedCategory && (

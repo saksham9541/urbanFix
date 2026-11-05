@@ -2,6 +2,15 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
+export const getFullImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+  return `${backendBase}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {

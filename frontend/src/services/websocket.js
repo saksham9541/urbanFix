@@ -61,7 +61,7 @@ class WebSocketService {
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
-        debug: () => {},
+        debug: () => { },
         onConnect: () => {
           this.connected = true;
           this.notifyStatus('CONNECTED');
@@ -158,13 +158,13 @@ class WebSocketService {
     return () => {
       this.subscribers.complaints.delete(callback);
       if (stompSub) {
-        try { stompSub.unsubscribe(); } catch (_) {}
+        try { stompSub.unsubscribe(); } catch (_) { }
       }
     };
   }
 
   subscribeUserNotifications(userId, callback) {
-    if (!userId) return () => {};
+    if (!userId) return () => { };
 
     if (!this.subscribers.notifications.has(userId)) {
       this.subscribers.notifications.set(userId, new Set());
@@ -193,7 +193,7 @@ class WebSocketService {
         set.delete(callback);
       }
       if (stompSub) {
-        try { stompSub.unsubscribe(); } catch (_) {}
+        try { stompSub.unsubscribe(); } catch (_) { }
       }
     };
   }
@@ -220,7 +220,7 @@ class WebSocketService {
     return () => {
       this.subscribers.system.delete(callback);
       if (stompSub) {
-        try { stompSub.unsubscribe(); } catch (_) {}
+        try { stompSub.unsubscribe(); } catch (_) { }
       }
     };
   }
@@ -242,7 +242,7 @@ class WebSocketService {
     if (this.client) {
       try {
         this.client.deactivate();
-      } catch (_) {}
+      } catch (_) { }
       this.client = null;
       this.connected = false;
       this.notifyStatus('DISCONNECTED');

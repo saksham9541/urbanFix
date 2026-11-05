@@ -22,7 +22,9 @@ function AppContent() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
-  const [activeTrackingNumber, setActiveTrackingNumber] = useState('UF-2026-10001');
+  const [activeTrackingNumber, setActiveTrackingNumber] = useState(
+    localStorage.getItem('urbanfix_last_ticket') || 'UF-2026-10001'
+  );
 
   const fetchHealth = async () => {
     const result = await checkBackendHealth();
@@ -40,7 +42,8 @@ function AppContent() {
   }, []);
 
   const handleOpenTrack = (trackingNumber) => {
-    setActiveTrackingNumber(trackingNumber || 'UF-2026-10001');
+    const target = trackingNumber || localStorage.getItem('urbanfix_last_ticket') || 'UF-2026-10001';
+    setActiveTrackingNumber(target);
     setIsTrackModalOpen(true);
   };
 
@@ -105,6 +108,7 @@ function AppContent() {
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onComplaintCreated={(newComplaint) => {
           if (newComplaint?.trackingNumber) {
+            localStorage.setItem('urbanfix_last_ticket', newComplaint.trackingNumber);
             handleOpenTrack(newComplaint.trackingNumber);
           }
         }}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Search, CheckCircle2, Clock, AlertTriangle, MapPin, Shield, Calendar, ArrowRight, Sparkles, Star, ThumbsUp, RotateCcw, MessageSquare } from 'lucide-react';
-import { trackComplaint, rateComplaintResolution, reopenComplaint } from '../services/api';
+import { trackComplaint, rateComplaintResolution, reopenComplaint, getFullImageUrl } from '../services/api';
 
 const STATUS_STEPS = [
   { key: 'SUBMITTED', label: 'Submitted', desc: 'Received & Logged' },
@@ -247,7 +247,7 @@ export default function TrackIssueModal({ isOpen, onClose, initialTrackingNumber
                   <div>
                     <div className="text-[11px] font-semibold text-slate-500 mb-1">Attached Photo Evidence:</div>
                     <div className="h-44 w-full rounded-xl overflow-hidden border border-slate-200">
-                      <img src={complaint.imageUrl} alt="Complaint" className="w-full h-full object-cover" />
+                      <img src={getFullImageUrl(complaint.imageUrl)} alt="Complaint" className="w-full h-full object-cover" />
                     </div>
                   </div>
                 )}
